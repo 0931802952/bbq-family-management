@@ -1,5 +1,5 @@
 // GitHub Pages 專用版本 - 使用 JSONP 繞過 CORS
-const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx_ltwF9_L72oVPjbe9O7_i6-m4evxFsrcB4o6dVAKOBVe4JcffZibH7dqBt2ZgCHsT/exec';
+const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwQzH4XuNUFsiGZ67WRTwNUe8gdFKkepnVPi8L_DPfBJH7hX31mYexGIvNh-ZbQfDAH/exec';
 
 let tasks = [];
 let editingTask = null;
