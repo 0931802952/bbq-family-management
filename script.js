@@ -1,261 +1,306 @@
-// 烤肉準備工作區 - 全JSONP功能修正版
-console.log('開始載入全JSONP功能版本...');
+// 烤肉準備項目工作區 - 更新版前端 JavaScript
+// 配合移除 assignee 欄位的後端
 
-const API_URL = 'https://script.google.com/macros/s/AKfycbyXTnq2WLNIDVpHQIp-gtT-MXgT-dWjSKBNgcU6WA7TWP8-Rw6NKdQ1CxGJeWasQBTY/exec';
+// Google Apps Script URL
+const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxRK7Q2jL7bGDigcuL6XHthkH1PJPtEEaWarfl-DDTw9CBU7FI80Rl80mVJSLpmV7ac/exec';
 
-let allItems = [];
+// 狀態選項
+const STATUS_OPTIONS = ['待處理', '進行中', '已完成'];
 
-// 等待頁面完全載入
-window.addEventListener('load', function() {
-    console.log('頁面載入完成，開始初始化...');
-    init();
+// 當頁面載入完成時初始化
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🔥 烤肉準備項目工作區啟動！');
+    
+    // 初始化狀態選擇器
+    populateStatusSelect();
+    
+    // 載入現有項目
+    loadTasks();
+    
+    // 綁定表單提交事件
+    const taskForm = document.getElementById('taskForm');
+    if (taskForm) {
+        taskForm.addEventListener('submit', handleFormSubmit);
+    }
+    
+    // 綁定篩選功能
+    const filterSelect = document.getElementById('filterStatus');
+    if (filterSelect) {
+        filterSelect.addEventListener('change', filterTasks);
+    }
 });
 
-function init() {
-    try {
-        console.log('開始初始化應用程式...');
-        loadData();
-        console.log('初始化完成');
-    } catch (error) {
-        console.error('初始化錯誤:', error);
-    }
-}
-
-// 通用JSONP請求函數
-function makeJSONPRequest(params, successCallback, errorCallback) {
-    try {
-        const callbackName = 'callback_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-        
-        // 創建全域回調函數
-        window[callbackName] = function(data) {
-            console.log('JSONP回應:', data);
-            if (successCallback) successCallback(data);
-            // 清理回調函數
-            delete window[callbackName];
-        };
-
-        // 構建URL參數
-        const urlParams = new URLSearchParams(params);
-        urlParams.set('callback', callbackName);
-        urlParams.set('t', Date.now());
-
-        // 創建script標籤
-        const script = document.createElement('script');
-        script.src = API_URL + '?' + urlParams.toString();
-        
-        console.log('JSONP請求URL:', script.src);
-        
-        script.onerror = function() {
-            console.error('JSONP請求失敗');
-            if (errorCallback) errorCallback('JSONP請求失敗');
-            delete window[callbackName];
-        };
-
-        document.head.appendChild(script);
-        
-        // 10秒後清理
-        setTimeout(() => {
-            if (script.parentNode) {
-                script.parentNode.removeChild(script);
-            }
-            if (window[callbackName]) {
-                delete window[callbackName];
-                if (errorCallback) errorCallback('請求超時');
-            }
-        }, 10000);
-        
-    } catch (error) {
-        console.error('JSONP請求錯誤:', error);
-        if (errorCallback) errorCallback(error.message);
-    }
-}
-
-// 載入資料
-function loadData() {
-    console.log('開始載入資料...');
-    updateTestStatus('正在載入資料...');
+// 填充狀態選擇器
+function populateStatusSelect() {
+    const statusSelect = document.getElementById('taskStatus');
+    const filterSelect = document.getElementById('filterStatus');
     
-    makeJSONPRequest(
-        {}, // 空參數表示載入所有資料
-        function(data) {
-            console.log('資料載入成功:', data);
-            allItems = data;
-            showData(data);
-            updateTestStatus(`成功載入 ${data.length} 個項目`);
-        },
-        function(error) {
-            console.error('載入失敗:', error);
-            updateTestStatus('載入失敗: ' + error);
-        }
-    );
-}
-
-// 顯示資料
-function showData(items) {
-    try {
-        console.log('開始顯示資料，項目數量:', items.length);
-        
-        const itemListElement = document.getElementById('itemList');
-        if (!itemListElement) {
-            console.error('找不到 itemList 元素');
-            return;
-        }
-
-        if (items.length === 0) {
-            itemListElement.innerHTML = '<tr><td colspan="5" style="text-align: center;">暫無資料</td></tr>';
-            return;
-        }
-
-        // 正確的欄位映射
-        const html = items.map(item => {
-            const familyGroup = item.assignee || '未指定';
-            const itemName = item.name || '未命名';
-            const quantity = item.quantity || 1;
-            const status = item.status || '待處理';
-            
-            return `
-                <tr>
-                    <td><span class="family-${familyGroup.replace(/\s+/g, '-')}">${familyGroup}</span></td>
-                    <td>${itemName}</td>
-                    <td>${quantity}</td>
-                    <td><span class="status-${status.replace(/\s+/g, '-')}">${status}</span></td>
-                    <td>
-                        <button onclick="updateStatus('${item.id}', '進行中')" class="btn-sm btn-start">開始</button>
-                        <button onclick="updateStatus('${item.id}', '已完成')" class="btn-sm btn-complete">完成</button>
-                    </td>
-                </tr>
-            `;
-        }).join('');
-        
-        itemListElement.innerHTML = html;
-        
-    } catch (error) {
-        console.error('顯示資料錯誤:', error);
-        updateTestStatus('顯示錯誤: ' + error.message);
+    // 清空現有選項
+    if (statusSelect) {
+        statusSelect.innerHTML = '';
+        STATUS_OPTIONS.forEach(status => {
+            const option = document.createElement('option');
+            option.value = status;
+            option.textContent = status;
+            statusSelect.appendChild(option);
+        });
+    }
+    
+    // 填充篩選選擇器
+    if (filterSelect) {
+        filterSelect.innerHTML = '<option value="">全部狀態</option>';
+        STATUS_OPTIONS.forEach(status => {
+            const option = document.createElement('option');
+            option.value = status;
+            option.textContent = status;
+            filterSelect.appendChild(option);
+        });
     }
 }
 
-// 新增項目 - 使用JSONP方式
-function handleSubmit() {
+// 處理表單提交
+function handleFormSubmit(event) {
+    event.preventDefault();
+    
+    const formData = new FormData(event.target);
+    const taskData = {
+        name: formData.get('itemName'),
+        group: formData.get('familyGroup'),
+        quantity: formData.get('quantity') || '1',
+        status: formData.get('status') || '待處理'
+    };
+    
+    console.log('準備新增項目:', taskData);
+    addTask(taskData);
+}
+
+// 新增項目（使用 JSONP）
+function addTask(taskData) {
     try {
-        const itemName = document.getElementById('itemName').value.trim();
-        const familyGroup = document.getElementById('familyGroup').value.trim();
-        const quantity = document.getElementById('quantity').value.trim();
-
-        if (!itemName || !familyGroup || !quantity) {
-            alert('請填寫所有欄位');
-            return;
-        }
-
-        updateTestStatus('正在新增項目...');
-
-        // 使用JSONP方式發送新增請求
-        const params = {
+        const callbackName = 'jsonp_callback_' + Date.now();
+        
+        // 建立請求參數
+        const params = new URLSearchParams({
             action: 'add',
-            name: itemName,
-            assignee: familyGroup,
-            group: '用戶新增',
-            quantity: quantity,
-            status: '待處理'
-        };
-
-        console.log('發送新增請求 (JSONP):', params);
-
-        makeJSONPRequest(
-            params,
-            function(response) {
-                console.log('新增成功回應:', response);
+            name: taskData.name,
+            group: taskData.group,
+            quantity: taskData.quantity,
+            status: taskData.status,
+            callback: callbackName
+        });
+        
+        const url = `${GOOGLE_APPS_SCRIPT_URL}?${params.toString()}`;
+        console.log('新增項目 URL:', url);
+        
+        // 定義回調函數
+        window[callbackName] = function(response) {
+            console.log('新增項目回應:', response);
+            
+            if (response.success) {
+                console.log('✅ 項目新增成功:', response.message);
+                showMessage('項目新增成功！', 'success');
+                
+                // 重新載入項目列表
+                loadTasks();
                 
                 // 清空表單
-                document.getElementById('itemName').value = '';
-                document.getElementById('familyGroup').value = '';
-                document.getElementById('quantity').value = '1';
-
-                // 重新載入資料
-                updateTestStatus('項目新增成功，重新載入...');
-                setTimeout(() => {
-                    loadData();
-                }, 1000);
-            },
-            function(error) {
-                console.error('新增失敗:', error);
-                alert('新增失敗: ' + error);
-                updateTestStatus('新增失敗: ' + error);
+                document.getElementById('taskForm').reset();
+            } else {
+                console.error('❌ 新增失敗:', response.error);
+                showMessage('新增失敗: ' + response.error, 'error');
             }
-        );
-
+            
+            // 清理回調函數
+            delete window[callbackName];
+            document.head.removeChild(script);
+        };
+        
+        // 建立並執行 JSONP 請求
+        const script = document.createElement('script');
+        script.src = url;
+        script.onerror = function() {
+            console.error('❌ JSONP 請求失敗');
+            showMessage('網路請求失敗，請檢查連線', 'error');
+            delete window[callbackName];
+            document.head.removeChild(script);
+        };
+        
+        document.head.appendChild(script);
+        
     } catch (error) {
         console.error('新增項目錯誤:', error);
-        alert('發生錯誤: ' + error.message);
-        updateTestStatus('發生錯誤: ' + error.message);
+        showMessage('發生錯誤: ' + error.message, 'error');
     }
 }
 
-// 更新狀態 - 使用JSONP方式
-function updateStatus(itemId, newStatus) {
-    try {
-        updateTestStatus('正在更新狀態...');
+// 載入所有項目
+function loadTasks() {
+    const callbackName = 'jsonp_callback_load_' + Date.now();
+    
+    console.log('開始載入項目列表...');
+    
+    // 定義回調函數
+    window[callbackName] = function(data) {
+        console.log('載入的項目數據:', data);
+        
+        if (Array.isArray(data)) {
+            displayTasks(data);
+            console.log(`✅ 成功載入 ${data.length} 個項目`);
+        } else if (data.error) {
+            console.error('❌ 載入失敗:', data.error);
+            showMessage('載入失敗: ' + data.error, 'error');
+        } else {
+            console.log('📝 無項目數據');
+            displayTasks([]);
+        }
+        
+        // 清理
+        delete window[callbackName];
+        document.head.removeChild(script);
+    };
+    
+    // 建立 JSONP 請求
+    const script = document.createElement('script');
+    script.src = `${GOOGLE_APPS_SCRIPT_URL}?callback=${callbackName}`;
+    script.onerror = function() {
+        console.error('❌ 載入項目失敗');
+        showMessage('載入項目失敗，請檢查網路連線', 'error');
+        delete window[callbackName];
+        document.head.removeChild(script);
+    };
+    
+    document.head.appendChild(script);
+}
 
-        const params = {
-            action: 'update',
-            id: itemId,
-            status: newStatus
-        };
+// 顯示項目列表
+function displayTasks(tasks) {
+    const taskList = document.getElementById('taskList');
+    if (!taskList) {
+        console.error('找不到項目列表容器');
+        return;
+    }
+    
+    // 清空現有內容
+    taskList.innerHTML = '';
+    
+    if (!tasks || tasks.length === 0) {
+        taskList.innerHTML = '<tr><td colspan="4" class="text-center">暫無項目</td></tr>';
+        return;
+    }
+    
+    // 渲染每個項目
+    tasks.forEach((task, index) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${escapeHtml(task.name || '')}</td>
+            <td>${escapeHtml(task.group || '')}</td>
+            <td>${escapeHtml(task.quantity || '1')}</td>
+            <td>
+                <span class="status-badge status-${getStatusClass(task.status)}">
+                    ${escapeHtml(task.status || '待處理')}
+                </span>
+            </td>
+        `;
+        taskList.appendChild(row);
+    });
+    
+    console.log(`🎯 顯示了 ${tasks.length} 個項目`);
+}
 
-        console.log('發送狀態更新請求 (JSONP):', params);
-
-        makeJSONPRequest(
-            params,
-            function(response) {
-                console.log('狀態更新成功:', response);
-                updateTestStatus('狀態更新成功，重新載入...');
-                setTimeout(() => {
-                    loadData();
-                }, 1000);
-            },
-            function(error) {
-                console.error('狀態更新失敗:', error);
-                alert('狀態更新失敗: ' + error);
-                updateTestStatus('狀態更新失敗: ' + error);
+// 篩選項目
+function filterTasks() {
+    const filterValue = document.getElementById('filterStatus').value;
+    const rows = document.querySelectorAll('#taskList tr');
+    
+    rows.forEach(row => {
+        if (filterValue === '') {
+            row.style.display = '';
+        } else {
+            const statusCell = row.querySelector('td:last-child .status-badge');
+            if (statusCell && statusCell.textContent.trim() === filterValue) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
             }
-        );
+        }
+    });
+    
+    console.log(`🔍 按狀態篩選: ${filterValue || '全部'}`);
+}
 
-    } catch (error) {
-        console.error('更新狀態錯誤:', error);
-        alert('發生錯誤: ' + error.message);
-        updateTestStatus('發生錯誤: ' + error.message);
+// 取得狀態對應的 CSS 類別
+function getStatusClass(status) {
+    switch (status) {
+        case '待處理': return 'pending';
+        case '進行中': return 'in-progress';
+        case '已完成': return 'completed';
+        default: return 'pending';
     }
 }
 
-// 篩選功能
-function filterItems() {
-    try {
-        const filterFamily = document.getElementById('filterFamily').value;
-        const filterStatus = document.getElementById('filterStatus').value;
-
-        let filteredItems = allItems.filter(item => {
-            const familyMatch = !filterFamily || item.assignee === filterFamily;
-            const statusMatch = !filterStatus || item.status === filterStatus;
-            return familyMatch && statusMatch;
-        });
-
-        showData(filteredItems);
-        updateTestStatus(`篩選結果: ${filteredItems.length} 個項目`);
-
-    } catch (error) {
-        console.error('篩選失敗:', error);
-    }
+// HTML 轉義（防止 XSS）
+function escapeHtml(unsafe) {
+    return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
 }
 
-// 更新測試狀態
-function updateTestStatus(message) {
-    console.log('狀態:', message);
-    const statusElement = document.getElementById('testStatus');
-    if (statusElement) {
-        statusElement.textContent = message;
-        statusElement.style.color = message.includes('失敗') || message.includes('錯誤') ? 'red' : 
-                                   message.includes('成功') ? 'green' : 'blue';
+// 顯示訊息
+function showMessage(message, type = 'info') {
+    // 移除現有訊息
+    const existingMessage = document.querySelector('.message-toast');
+    if (existingMessage) {
+        existingMessage.remove();
     }
+    
+    // 建立新訊息
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message-toast message-${type}`;
+    messageDiv.textContent = message;
+    
+    // 樣式
+    messageDiv.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 12px 20px;
+        border-radius: 4px;
+        color: white;
+        font-weight: bold;
+        z-index: 1000;
+        transition: opacity 0.3s ease;
+    `;
+    
+    // 根據類型設置背景色
+    switch (type) {
+        case 'success':
+            messageDiv.style.backgroundColor = '#4CAF50';
+            break;
+        case 'error':
+            messageDiv.style.backgroundColor = '#f44336';
+            break;
+        default:
+            messageDiv.style.backgroundColor = '#2196F3';
+    }
+    
+    // 加到頁面
+    document.body.appendChild(messageDiv);
+    
+    // 3秒後移除
+    setTimeout(() => {
+        messageDiv.style.opacity = '0';
+        setTimeout(() => {
+            if (messageDiv.parentNode) {
+                messageDiv.parentNode.removeChild(messageDiv);
+            }
+        }, 300);
+    }, 3000);
 }
 
-console.log('全JSONP功能版本載入完成');
+// 除錯資訊
+console.log('🔥 烤肉準備項目工作區 JavaScript 已載入');
+console.log('📡 Google Apps Script URL:', GOOGLE_APPS_SCRIPT_URL);
+console.log('📋 支援狀態:', STATUS_OPTIONS);
