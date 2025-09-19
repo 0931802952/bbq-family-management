@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>中秋烤肉家庭分工管理系統</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🥮 中秋烤肉家庭分工管理系統 🔥</h1>
+            <div class="meeting-info">
+                <p><strong>🗓️ 活動：</strong>中秋節烤肉聚會</p>
+                <p><strong>👨‍👩‍👧‍👦 分工：</strong>郭家（海鮮類、雞、包肉菜葉）、哥家（牛羊豬）、翁家（飲料、水果、食器）</p>
+            </div>
+        </header>
+
+        <div class="controls">
+            <button id="addBtn" class="btn btn-primary">🍖 新增烤肉項目</button>
+            
+            <!-- 家庭分組快速切換按鈕 -->
+            <div class="group-switch-buttons">
+                <span class="switch-label">🏠 快速切換分組：</span>
+                <button id="showAllBtn" class="btn btn-group active">全部</button>
+                <button id="showGroup1Btn" class="btn btn-group" data-group="郭家">🐟 郭家</button>
+                <button id="showGroup2Btn" class="btn btn-group" data-group="哥家">🥩 哥家</button>
+                <button id="showGroup3Btn" class="btn btn-group" data-group="翁家">🥤 翁家</button>
+            </div>
+            
+            <div class="filters">
+                <label for="groupFilter">分組篩選：</label>
+                <select id="groupFilter">
+                    <option value="all">全部分組</option>
+                    <option value="郭家">郭家</option>
+                    <option value="哥家">哥家</option>
+                    <option value="翁家">翁家</option>
+                </select>
+                
+                <label for="statusFilter">狀態篩選：</label>
+                <select id="statusFilter">
+                    <option value="all">全部</option>
+                    <option value="incomplete">未完成</option>
+                    <option value="completed">已完成</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table id="meetingTable">
+                <thead>
+                    <tr>
+                        <th>家庭分組</th>
+                        <th>項目名稱</th>
+                        <th>數量</th>
+                        <th>狀態</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <!-- 數據將通過 JavaScript 動態載入 -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 新增/編輯模態框 -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="modalTitle">🍖 新增烤肉項目</h2>
+            <form id="meetingForm">
+                <div class="form-group">
+                    <label for="groupName">家庭分組：</label>
+                    <select id="groupName" name="groupName" required>
+                        <option value="">請選擇家庭分組</option>
+                        <option value="郭家">郭家</option>
+                        <option value="哥家">哥家</option>
+                        <option value="翁家">翁家</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="itemName">項目名稱：</label>
+                    <input type="text" id="itemName" name="itemName" placeholder="輸入項目名稱" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="quantity">數量：</label>
+                    <input type="text" id="quantity" name="quantity" placeholder="輸入數量" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="status">狀態：</label>
+                    <select id="status" name="status">
+                        <option value="incomplete">未完成</option>
+                        <option value="completed">已完成</option>
+                    </select>
+                </div>
+
+                <div class="form-buttons">
+                    <button type="submit" class="btn btn-primary">儲存</button>
+                    <button type="button" class="btn btn-secondary" id="cancelBtn">取消</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
