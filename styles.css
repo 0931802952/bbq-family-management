@@ -54,49 +54,7 @@ header h1 {
     gap: 15px;
 }
 
-/* 家庭分組快速切換按鈕區域 */
-.group-switch-buttons {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px;
-    background: rgba(255, 255, 255, 0.9);
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
 
-.switch-label {
-    font-weight: 600;
-    color: #333;
-    margin-right: 10px;
-}
-
-.btn-group {
-    padding: 8px 16px;
-    background: #e9ecef;
-    color: #495057;
-    border: 2px solid transparent;
-    border-radius: 20px;
-    font-size: 14px;
-    font-weight: 500;
-    transition: all 0.3s ease;
-}
-
-.btn-group:hover {
-    background: #dee2e6;
-    transform: translateY(-1px);
-}
-
-.btn-group.active {
-    background: linear-gradient(135deg, #FF6B35 0%, #F7931E 100%);
-    color: white;
-    border-color: #FF6B35;
-    box-shadow: 0 3px 10px rgba(255, 107, 53, 0.3);
-}
-
-.btn-group.active:hover {
-    background: linear-gradient(135deg, #e55a2b 0%, #e0841a 100%);
-}
 
 .btn {
     padding: 12px 24px;

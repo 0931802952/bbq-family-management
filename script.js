@@ -287,18 +287,12 @@ const modalTitle = document.getElementById('modalTitle');
 const statusFilter = document.getElementById('statusFilter');
 const groupFilter = document.getElementById('groupFilter');
 
-// 家庭分組切換按鈕
-const showAllBtn = document.getElementById('showAllBtn');
-const showGroup1Btn = document.getElementById('showGroup1Btn');
-const showGroup2Btn = document.getElementById('showGroup2Btn');
-const showGroup3Btn = document.getElementById('showGroup3Btn');
-const groupSwitchButtons = document.querySelectorAll('.btn-group');
+
 
 // 初始化
 document.addEventListener('DOMContentLoaded', function() {
     renderTable();
     bindEvents();
-    updateButtonStates(); // 初始化按鈕狀態
 });
 
 // 綁定事件
@@ -308,16 +302,8 @@ function bindEvents() {
     cancelBtn.addEventListener('click', closeModal);
     meetingForm.addEventListener('submit', handleFormSubmit);
     statusFilter.addEventListener('change', renderTable);
-    groupFilter.addEventListener('change', () => {
-        updateButtonStates();
-        renderTable();
-    });
-    
-    // 家庭分組快速切換按鈕事件
-    showAllBtn.addEventListener('click', () => switchGroup('all'));
-    showGroup1Btn.addEventListener('click', () => switchGroup('郭家'));
-    showGroup2Btn.addEventListener('click', () => switchGroup('哥家'));
-    showGroup3Btn.addEventListener('click', () => switchGroup('翁家'));
+    groupFilter.addEventListener('change', renderTable);
+
     
     // 點擊模態框外部關閉
     window.addEventListener('click', function(event) {
@@ -327,38 +313,7 @@ function bindEvents() {
     });
 }
 
-// 家庭分組快速切換功能
-function switchGroup(groupName) {
-    // 更新下拉選單的值
-    groupFilter.value = groupName;
-    
-    // 更新按鈕的活動狀態
-    updateButtonStates();
-    
-    // 重新渲染表格
-    renderTable();
-}
 
-// 更新按鈕活動狀態（同步下拉選單）
-function updateButtonStates() {
-    const currentGroup = groupFilter.value;
-    
-    // 移除所有按鈕的活動狀態
-    groupSwitchButtons.forEach(btn => {
-        btn.classList.remove('active');
-    });
-    
-    // 設定對應按鈕為活動狀態
-    if (currentGroup === 'all') {
-        showAllBtn.classList.add('active');
-    } else if (currentGroup === '郭家') {
-        showGroup1Btn.classList.add('active');
-    } else if (currentGroup === '哥家') {
-        showGroup2Btn.classList.add('active');
-    } else if (currentGroup === '翁家') {
-        showGroup3Btn.classList.add('active');
-    }
-}
 
 // 渲染表格
 function renderTable() {
