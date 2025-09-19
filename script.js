@@ -422,7 +422,7 @@ function renderTable() {
 // 打開新增模態框
 function openAddModal() {
     editingId = null;
-    modalTitle.textContent = '🍖 新增烤肉項目';
+    modalTitle.textContent = '🍖 新增準備項目';
     meetingForm.reset();
     document.getElementById('status').value = 'incomplete';
     modal.style.display = 'block';
