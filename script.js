@@ -7,12 +7,18 @@ const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxRK7Q2j
 // 狀態選項
 const STATUS_OPTIONS = ['待處理', '進行中', '已完成'];
 
+// 家庭分組選項
+const FAMILY_GROUPS = ['郭家', '哥家', '翁家'];
+
 // 當頁面載入完成時初始化
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🔥 烤肉準備項目工作區啟動！');
     
     // 初始化狀態選擇器
     populateStatusSelect();
+    
+    // 初始化家庭分組選擇器
+    populateFamilyGroupSelect();
     
     // 載入現有項目
     loadTasks();
@@ -54,6 +60,21 @@ function populateStatusSelect() {
             option.value = status;
             option.textContent = status;
             filterSelect.appendChild(option);
+        });
+    }
+}
+
+// 填充家庭分組選擇器
+function populateFamilyGroupSelect() {
+    const familyGroupSelect = document.getElementById('familyGroup');
+    
+    if (familyGroupSelect) {
+        familyGroupSelect.innerHTML = '<option value="">請選擇家庭分組</option>';
+        FAMILY_GROUPS.forEach(group => {
+            const option = document.createElement('option');
+            option.value = group;
+            option.textContent = group;
+            familyGroupSelect.appendChild(option);
         });
     }
 }
@@ -304,3 +325,4 @@ function showMessage(message, type = 'info') {
 console.log('🔥 烤肉準備項目工作區 JavaScript 已載入');
 console.log('📡 Google Apps Script URL:', GOOGLE_APPS_SCRIPT_URL);
 console.log('📋 支援狀態:', STATUS_OPTIONS);
+console.log('👨‍👩‍👧‍👦 家庭分組:', FAMILY_GROUPS);
