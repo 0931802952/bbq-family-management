@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSONP 測試頁面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .result {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .log {
+            height: 200px;
+            overflow-y: auto;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 JSONP 測試頁面</h1>
+    
+    <div class="test-section">
+        <h2>步驟 1：測試基本 API</h2>
+        <p>先測試您的 Google Apps Script API 是否正常回應：</p>
+        <button onclick="testBasicAPI()">測試基本 API</button>
+        <div id="basicResult" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>步驟 2：測試 JSONP 功能</h2>
+        <p>測試 JSONP 跨域請求是否正常：</p>
+        <button onclick="testJSONP()">測試 JSONP</button>
+        <div id="jsonpResult" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>步驟 3：診斷資訊</h2>
+        <button onclick="showDiagnostics()">顯示診斷資訊</button>
+        <div id="diagnostics" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>執行記錄</h2>
+        <button onclick="clearLog()">清除記錄</button>
+        <div id="log" class="log"></div>
+    </div>
+
+    <script>
+        const API_URL = 'https://script.google.com/macros/s/AKfycbxRBti_YF19mZpzfevHdMt17b5cChvRRA3p4q7ZbUTaMtmIVhSBfQy_45y6qskMmoL1/exec';
+        
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            logDiv.innerHTML += `[${timestamp}] ${message}\n`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+        
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+        }
+        
+        async function testBasicAPI() {
+            const resultDiv = document.getElementById('basicResult');
+            resultDiv.textContent = '測試中...';
+            log('開始測試基本 API...');
+            
+            try {
+                // 直接訪問 API URL
+                window.open(API_URL, '_blank');
+                resultDiv.textContent = '已在新視窗開啟 API URL，請檢查是否顯示 [] 或資料';
+                resultDiv.className = 'result success';
+                log('✅ 基本 API 測試：請檢查新開啟的視窗');
+            } catch (error) {
+                resultDiv.textContent = '錯誤: ' + error.message;
+                resultDiv.className = 'result error';
+                log('❌ 基本 API 測試失敗: ' + error.message);
+            }
+        }
+        
+        async function testJSONP() {
+            const resultDiv = document.getElementById('jsonpResult');
+            resultDiv.textContent = '測試中...';
+            log('開始測試 JSONP...');
+            
+            try {
+                const data = await fetchWithJSONP();
+                resultDiv.textContent = 'JSONP 成功！收到資料:\n' + JSON.stringify(data, null, 2);
+                resultDiv.className = 'result success';
+                log('✅ JSONP 測試成功，收到 ' + (Array.isArray(data) ? data.length : 0) + ' 筆資料');
+            } catch (error) {
+                resultDiv.textContent = 'JSONP 失敗: ' + error.message;
+                resultDiv.className = 'result error';
+                log('❌ JSONP 測試失敗: ' + error.message);
+            }
+        }
+        
+        function fetchWithJSONP() {
+            return new Promise((resolve, reject) => {
+                const callbackName = 'jsonp_test_' + Date.now();
+                const timeout = setTimeout(() => {
+                    delete window[callbackName];
+                    reject(new Error('JSONP 請求超時'));
+                }, 15000);
+                
+                window[callbackName] = function(data) {
+                    clearTimeout(timeout);
+                    delete window[callbackName];
+                    log('JSONP 回調函數被呼叫，資料類型: ' + typeof data);
+                    resolve(data);
+                };
+                
+                const script = document.createElement('script');
+                const url = API_URL + '?callback=' + callbackName + '&t=' + Date.now();
+                script.src = url;
+                script.onerror = function() {
+                    clearTimeout(timeout);
+                    delete window[callbackName];
+                    reject(new Error('JSONP 腳本載入失敗'));
+                };
+                
+                log('發送 JSONP 請求: ' + url);
+                document.head.appendChild(script);
+                
+                setTimeout(() => {
+                    if (script.parentNode) {
+                        script.parentNode.removeChild(script);
+                    }
+                }, 16000);
+            });
+        }
+        
+        function showDiagnostics() {
+            const diagnosticsDiv = document.getElementById('diagnostics');
+            const info = {
+                '頁面 URL': window.location.href,
+                '頁面協議': window.location.protocol,
+                '頁面域名': window.location.hostname,
+                'API URL': API_URL,
+                '瀏覽器': navigator.userAgent,
+                '當前時間': new Date().toISOString()
+            };
+            
+            let output = '診斷資訊:\n';
+            for (const [key, value] of Object.entries(info)) {
+                output += `${key}: ${value}\n`;
+            }
+            
+            diagnosticsDiv.textContent = output;
+            diagnosticsDiv.className = 'result';
+            log('📊 顯示診斷資訊');
+        }
+        
+        // 頁面載入時自動顯示診斷資訊
+        document.addEventListener('DOMContentLoaded', function() {
+            log('🚀 測試頁面載入完成');
+            showDiagnostics();
+        });
+    </script>
+</body>
+</html>
