@@ -4,106 +4,204 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>烤肉準備項目工作區</title>
-    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+        
+        .form-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        button {
+            background: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        button:hover {
+            background: #0056b3;
+        }
+        
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 12px;
+            margin: 0 2px;
+        }
+        
+        .status-待處理 { color: #ffc107; }
+        .status-進行中 { color: #17a2b8; }
+        .status-已完成 { color: #28a745; }
+        
+        .family-小明家 { background: #e3f2fd; padding: 2px 8px; border-radius: 12px; }
+        .family-小華家 { background: #f3e5f5; padding: 2px 8px; border-radius: 12px; }
+        .family-小李家 { background: #e8f5e8; padding: 2px 8px; border-radius: 12px; }
+    </style>
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1>🥮 烤肉準備項目工作區 🔥</h1>
-            <div class="meeting-info">
-                <p><strong>🗓️ 活動：</strong>9/28(日)下午15:30 闔家烤肉萬家香</p>
-                <p><strong>📍 地址：</strong>新北市林口區仁愛路一段667巷23號</p>
-            </div>
-        </header>
-
-        <div class="controls">
-            <button id="addBtn" class="btn btn-primary">🍖 新增準備項目</button>
-            
-
-            
-            <div class="filters">
-                <label for="groupFilter">分組篩選：</label>
-                <select id="groupFilter">
-                    <option value="all">全部分組</option>
-                    <option value="郭家">郭家</option>
-                    <option value="哥家">哥家</option>
-                    <option value="翁家">翁家</option>
-                </select>
-                
-                <label for="statusFilter">狀態篩選：</label>
-                <select id="statusFilter">
-                    <option value="all">全部</option>
-                    <option value="incomplete">未完成</option>
-                    <option value="completed">已完成</option>
-                </select>
-            </div>
+        <h1>🔥 烤肉準備項目工作區</h1>
+        
+        <!-- 測試區域 -->
+        <div id="testArea" style="background: #fff3cd; padding: 15px; margin-bottom: 20px; border-radius: 5px;">
+            <h3>🔍 載入測試</h3>
+            <p id="testStatus">正在初始化...</p>
         </div>
-
-        <div class="table-container">
-            <table id="meetingTable">
-                <thead>
-                    <tr>
-                        <th>家庭分組</th>
-                        <th>項目名稱</th>
-                        <th>數量</th>
-                        <th>狀態</th>
-                        <th>操作</th>
-                    </tr>
-                </thead>
-                <tbody id="tableBody">
-                    <!-- 數據將通過 JavaScript 動態載入 -->
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- 新增/編輯模態框 -->
-    <div id="modal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2 id="modalTitle">🍖 新增準備項目</h2>
-            <form id="meetingForm">
-                <div class="form-group">
-                    <label for="groupName">家庭分組：</label>
-                    <select id="groupName" name="groupName" required>
-                        <option value="">請選擇家庭分組</option>
-                        <option value="郭家">郭家</option>
-                        <option value="哥家">哥家</option>
-                        <option value="翁家">翁家</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="itemName">項目名稱：</label>
-                    <input type="text" id="itemName" name="itemName" placeholder="輸入項目名稱" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="quantity">數量：</label>
-                    <input type="text" id="quantity" name="quantity" placeholder="輸入數量" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="status">狀態：</label>
-                    <select id="status" name="status">
-                        <option value="incomplete">未完成</option>
-                        <option value="completed">已完成</option>
-                    </select>
-                </div>
-
-                <div class="form-buttons">
-                    <button type="submit" class="btn btn-primary">儲存</button>
-                    <button type="button" class="btn btn-secondary" id="cancelBtn">取消</button>
+        
+        <!-- 新增項目表單 -->
+        <div class="form-section">
+            <h3>➕ 新增項目</h3>
+            <form id="itemForm" onsubmit="event.preventDefault(); handleSubmit();">
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 15px; align-items: end;">
+                    <div class="form-group">
+                        <label for="itemName">項目名稱</label>
+                        <input type="text" id="itemName" placeholder="例如：烤肉架" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="familyGroup">家庭分組</label>
+                        <select id="familyGroup" required>
+                            <option value="">選擇家庭</option>
+                            <option value="小明家">小明家</option>
+                            <option value="小華家">小華家</option>
+                            <option value="小李家">小李家</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="quantity">數量</label>
+                        <input type="number" id="quantity" placeholder="1" min="1" value="1" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <button type="submit">新增項目</button>
+                    </div>
                 </div>
             </form>
         </div>
+        
+        <!-- 篩選器 -->
+        <div style="display: flex; gap: 15px; margin-bottom: 20px;">
+            <div>
+                <label for="filterFamily">篩選家庭：</label>
+                <select id="filterFamily" onchange="filterItems()">
+                    <option value="">全部家庭</option>
+                    <option value="小明家">小明家</option>
+                    <option value="小華家">小華家</option>
+                    <option value="小李家">小李家</option>
+                </select>
+            </div>
+            
+            <div>
+                <label for="filterStatus">篩選狀態：</label>
+                <select id="filterStatus" onchange="filterItems()">
+                    <option value="">全部狀態</option>
+                    <option value="待處理">待處理</option>
+                    <option value="進行中">進行中</option>
+                    <option value="已完成">已完成</option>
+                </select>
+            </div>
+        </div>
+        
+        <!-- 項目列表 -->
+        <table>
+            <thead>
+                <tr>
+                    <th>家庭分組</th>
+                    <th>項目名稱</th>
+                    <th>數量</th>
+                    <th>狀態</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody id="itemList">
+                <tr>
+                    <td colspan="5" style="text-align: center;">正在載入...</td>
+                </tr>
+            </tbody>
+        </table>
     </div>
 
-    <!-- 手動刷新按鈕 -->
-    <button class="refresh-btn" onclick="refreshData()" title="刷新數據">
-        🔄
-    </button>
-
+    <!-- 載入修正版腳本 -->
     <script src="script.js"></script>
+    
+    <script>
+        // 更新測試狀態
+        function updateTestStatus(message) {
+            const statusElement = document.getElementById('testStatus');
+            if (statusElement) {
+                statusElement.textContent = message;
+            }
+        }
+        
+        // 頁面載入完成後更新狀態
+        window.addEventListener('load', function() {
+            updateTestStatus('頁面載入完成，正在初始化腳本...');
+        });
+        
+        // 空的篩選函數（暫時）
+        function filterItems() {
+            console.log('篩選功能開發中...');
+        }
+    </script>
 </body>
 </html>
