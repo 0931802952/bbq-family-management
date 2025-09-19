@@ -1,6 +1,6 @@
 // ========== 配置區域 ==========
 // 請將此 URL 替換為您的 Google Apps Script 部署 URL
-const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwSmr3NFuGTxUXx7-xlTCDwljzBA3iUWH0_K3w5s7c/dev';
+const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxRBti_YF19mZpzfevHdMt17b5cChvRRA3p4q7ZbUTaMtmIVhSBfQy_45y6qskMmoL1/exec';
 
 // ========== 數據存儲 ==========
 let itemData = []; // 現在數據將從 Google Sheets 載入
