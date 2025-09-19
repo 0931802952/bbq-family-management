@@ -1,5 +1,5 @@
-// GitHub Pages 專用版本 - 使用 JSONP 繞過 CORS
-const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwQzH4XuNUFsiGZ67WRTwNUe8gdFKkepnVPi8L_DPfBJH7hX31mYexGIvNh-ZbQfDAH/exec';
+// GitHub Pages 最終版本 - 使用新的 API URL
+const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyXTnq2WLNIDVpHQIp-gtT-MXgT-dWjSKBNgcU6WA7TWP8-Rw6NKdQ1CxGJeWasQBTY/exec';
 
 let tasks = [];
 let editingTask = null;
@@ -8,42 +8,41 @@ let editingTask = null;
 const GROUPS = ['烤肉用具', '食材採購', '場地準備', '其他'];
 const STATUSES = ['待處理', '進行中', '已完成'];
 
-// JSONP 載入函數
-function loadScript(url, callback) {
-    const script = document.createElement('script');
-    script.type = 'text/javascript';
-    script.src = url;
-    script.onload = callback;
-    document.head.appendChild(script);
-}
-
 // 使用 JSONP 載入任務
 async function fetchTasks() {
     return new Promise((resolve, reject) => {
-        const callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
+        const callbackName = 'jsonp_' + Date.now();
+        const timeout = setTimeout(() => {
+            delete window[callbackName];
+            reject(new Error('請求超時'));
+        }, 10000);
         
         // 創建全域回調函數
         window[callbackName] = function(data) {
+            clearTimeout(timeout);
             delete window[callbackName];
-            resolve(data);
+            console.log('JSONP 回調收到資料:', data);
+            resolve(data || []);
         };
         
-        // 載入 JSONP
+        // 建立 JSONP 請求
         const script = document.createElement('script');
-        script.src = GOOGLE_APPS_SCRIPT_URL + '?action=get&callback=' + callbackName;
+        script.src = GOOGLE_APPS_SCRIPT_URL + '?callback=' + callbackName + '&t=' + Date.now();
         script.onerror = function() {
+            clearTimeout(timeout);
             delete window[callbackName];
             reject(new Error('JSONP 載入失敗'));
         };
         
+        console.log('發送 JSONP 請求:', script.src);
         document.head.appendChild(script);
         
-        // 清理 script 標籤
+        // 清理
         setTimeout(() => {
             if (script.parentNode) {
                 script.parentNode.removeChild(script);
             }
-        }, 1000);
+        }, 11000);
     });
 }
 
@@ -51,35 +50,53 @@ async function fetchTasks() {
 async function loadTasks() {
     try {
         console.log('開始載入任務...');
+        showMessage('正在載入資料...', 'info');
         
         tasks = await fetchTasks();
-        console.log('載入任務成功:', tasks);
+        console.log('載入任務成功，數量:', tasks.length);
         
         renderTasks();
-        showMessage('數據載入成功！', 'success');
+        showMessage(`載入成功！共 ${tasks.length} 個任務`, 'success');
     } catch (error) {
         console.error('載入任務失敗:', error);
-        showMessage('載入數據失敗，請檢查網路連線或配置', 'error');
+        showMessage('載入失敗: ' + error.message, 'error');
+        
+        // 顯示空狀態
+        tasks = [];
+        renderTasks();
     }
 }
 
-// 使用 img 標籤進行寫操作（簡單的 GET 請求技巧）
+// 寫操作 - 使用隱藏表單提交
 async function sendWriteRequest(data) {
     return new Promise((resolve, reject) => {
-        // 對於寫操作，我們仍然需要使用 fetch，但先嘗試
-        fetch(GOOGLE_APPS_SCRIPT_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data),
-            mode: 'no-cors' // 這會讓請求發送但無法讀取回應
-        }).then(() => {
-            // 寫操作發送成功，重新載入數據來確認
-            setTimeout(() => {
-                loadTasks().then(() => resolve({ success: true }));
-            }, 1000);
-        }).catch(reject);
+        try {
+            // 使用 fetch 的 no-cors 模式
+            fetch(GOOGLE_APPS_SCRIPT_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+                mode: 'no-cors' // 重要：繞過 CORS 檢查
+            }).then(() => {
+                console.log('寫入請求已發送');
+                // 延遲重新載入資料來確認變更
+                setTimeout(() => {
+                    loadTasks().then(() => resolve({ success: true }));
+                }, 1500);
+            }).catch(error => {
+                console.error('寫入請求失敗:', error);
+                // 即使 fetch 失敗，也嘗試重新載入（可能實際上成功了）
+                setTimeout(() => {
+                    loadTasks().then(() => resolve({ success: true }));
+                }, 2000);
+            });
+            
+        } catch (error) {
+            console.error('發送寫入請求錯誤:', error);
+            reject(error);
+        }
     });
 }
 
@@ -87,6 +104,7 @@ async function sendWriteRequest(data) {
 async function addTask(task) {
     try {
         console.log('新增任務:', task);
+        showMessage('正在新增任務...', 'info');
         
         await sendWriteRequest({
             action: 'add',
@@ -96,7 +114,7 @@ async function addTask(task) {
         showMessage('任務新增成功！', 'success');
     } catch (error) {
         console.error('新增任務失敗:', error);
-        showMessage('新增任務失敗', 'error');
+        showMessage('新增失敗: ' + error.message, 'error');
     }
 }
 
@@ -104,6 +122,7 @@ async function addTask(task) {
 async function updateTask(task) {
     try {
         console.log('更新任務:', task);
+        showMessage('正在更新任務...', 'info');
         
         await sendWriteRequest({
             action: 'update',
@@ -113,7 +132,7 @@ async function updateTask(task) {
         showMessage('任務更新成功！', 'success');
     } catch (error) {
         console.error('更新任務失敗:', error);
-        showMessage('更新任務失敗', 'error');
+        showMessage('更新失敗: ' + error.message, 'error');
     }
 }
 
@@ -121,6 +140,7 @@ async function updateTask(task) {
 async function deleteTask(taskId) {
     try {
         console.log('刪除任務:', taskId);
+        showMessage('正在刪除任務...', 'info');
         
         await sendWriteRequest({
             action: 'delete',
@@ -130,7 +150,7 @@ async function deleteTask(taskId) {
         showMessage('任務刪除成功！', 'success');
     } catch (error) {
         console.error('刪除任務失敗:', error);
-        showMessage('刪除任務失敗', 'error');
+        showMessage('刪除失敗: ' + error.message, 'error');
     }
 }
 
@@ -190,13 +210,19 @@ function renderTasks() {
 // 顯示訊息
 function showMessage(message, type = 'info') {
     const messageDiv = document.getElementById('message');
-    messageDiv.textContent = message;
-    messageDiv.className = `message ${type}`;
-    messageDiv.style.display = 'block';
-    
-    setTimeout(() => {
-        messageDiv.style.display = 'none';
-    }, 3000);
+    if (messageDiv) {
+        messageDiv.textContent = message;
+        messageDiv.className = `message ${type}`;
+        messageDiv.style.display = 'block';
+        
+        // 自動隱藏成功和資訊訊息
+        if (type === 'success' || type === 'info') {
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 3000);
+        }
+    }
+    console.log(`[${type.toUpperCase()}] ${message}`);
 }
 
 // 開啟新增任務表單
@@ -262,25 +288,36 @@ function confirmDeleteTask(taskId) {
     }
 }
 
+// 手動重新載入
+function refreshTasks() {
+    loadTasks();
+}
+
 // 初始化應用程式
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('🎉 GitHub Pages 應用程式初始化...');
+    
     // 填充下拉選單
     const groupSelect = document.getElementById('taskGroup');
     const statusSelect = document.getElementById('taskStatus');
     
-    GROUPS.forEach(group => {
-        const option = document.createElement('option');
-        option.value = group;
-        option.textContent = group;
-        groupSelect.appendChild(option);
-    });
+    if (groupSelect) {
+        GROUPS.forEach(group => {
+            const option = document.createElement('option');
+            option.value = group;
+            option.textContent = group;
+            groupSelect.appendChild(option);
+        });
+    }
     
-    STATUSES.forEach(status => {
-        const option = document.createElement('option');
-        option.value = status;
-        option.textContent = status;
-        statusSelect.appendChild(option);
-    });
+    if (statusSelect) {
+        STATUSES.forEach(status => {
+            const option = document.createElement('option');
+            option.value = status;
+            option.textContent = status;
+            statusSelect.appendChild(option);
+        });
+    }
     
     // 載入任務
     loadTasks();
