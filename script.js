@@ -16,28 +16,68 @@ const meetingForm = document.getElementById('meetingForm');
 const modalTitle = document.getElementById('modalTitle');
 const statusFilter = document.getElementById('statusFilter');
 const groupFilter = document.getElementById('groupFilter');
+const refreshBtn = document.getElementById('refreshBtn');
 
 // ========== API 調用函數 ==========
 
 /**
- * 調用 Google Apps Script API
+ * 獲取所有項目（使用 GET 方法）
  */
-async function callAPI(action, data = {}) {
+async function fetchTasks() {
     if (GOOGLE_APPS_SCRIPT_URL === 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') {
         throw new Error('請先設置 Google Apps Script URL');
     }
     
-    showLoading();
-    
     try {
+        console.log('正在載入數據...');
+        showLoading();
+        
+        const response = await fetch(GOOGLE_APPS_SCRIPT_URL + '?t=' + Date.now(), {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        console.log('載入的數據:', data);
+        
+        // 檢查是否有錯誤
+        if (data.error) {
+            throw new Error(data.error + (data.details ? ': ' + data.details : ''));
+        }
+        
+        // 確保返回陣列
+        return Array.isArray(data) ? data : [];
+        
+    } catch (error) {
+        console.error('獲取數據失敗:', error);
+        throw error;
+    } finally {
+        hideLoading();
+    }
+}
+
+/**
+ * 新增任務（使用 POST 方法）
+ */
+async function addTask(taskData) {
+    try {
+        console.log('新增任務:', taskData);
+        showLoading();
+        
         const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                action: action,
-                ...data
+                action: 'add',
+                data: taskData
             })
         });
         
@@ -46,15 +86,106 @@ async function callAPI(action, data = {}) {
         }
         
         const result = await response.json();
+        console.log('新增結果:', result);
         
-        if (!result.success) {
-            throw new Error(result.data.error || '操作失敗');
+        if (result.error) {
+            throw new Error(result.error + (result.details ? ': ' + result.details : ''));
         }
         
-        return result.data;
+        // 檢查是否成功
+        if (!result.success) {
+            throw new Error('新增失敗：' + (result.message || '未知錯誤'));
+        }
+        
+        return result;
     } catch (error) {
-        console.error('API 調用錯誤:', error);
-        showError('操作失敗: ' + error.message);
+        console.error('新增任務失敗:', error);
+        throw error;
+    } finally {
+        hideLoading();
+    }
+}
+
+/**
+ * 更新任務（使用 POST 方法）
+ */
+async function updateTask(taskData) {
+    try {
+        console.log('更新任務:', taskData);
+        showLoading();
+        
+        const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                action: 'update',
+                data: taskData
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const result = await response.json();
+        console.log('更新結果:', result);
+        
+        if (result.error) {
+            throw new Error(result.error + (result.details ? ': ' + result.details : ''));
+        }
+        
+        if (!result.success) {
+            throw new Error('更新失敗：' + (result.message || '未知錯誤'));
+        }
+        
+        return result;
+    } catch (error) {
+        console.error('更新任務失敗:', error);
+        throw error;
+    } finally {
+        hideLoading();
+    }
+}
+
+/**
+ * 刪除任務（使用 POST 方法）
+ */
+async function deleteTask(taskId) {
+    try {
+        console.log('刪除任務:', taskId);
+        showLoading();
+        
+        const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                action: 'delete',
+                data: { id: taskId }
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const result = await response.json();
+        console.log('刪除結果:', result);
+        
+        if (result.error) {
+            throw new Error(result.error + (result.details ? ': ' + result.details : ''));
+        }
+        
+        if (!result.success) {
+            throw new Error('刪除失敗：' + (result.message || '未知錯誤'));
+        }
+        
+        return result;
+    } catch (error) {
+        console.error('刪除任務失敗:', error);
         throw error;
     } finally {
         hideLoading();
@@ -66,12 +197,12 @@ async function callAPI(action, data = {}) {
  */
 async function loadItems() {
     try {
-        itemData = await callAPI('getItems');
+        itemData = await fetchTasks();
         renderTable();
-        showSuccess('數據載入成功！');
+        showSuccess('數據載入成功！共 ' + itemData.length + ' 筆項目');
     } catch (error) {
         console.error('載入數據失敗:', error);
-        showError('載入數據失敗，請檢查網路連線或配置');
+        showError('載入數據失敗: ' + error.message);
     }
 }
 
@@ -80,11 +211,13 @@ async function loadItems() {
  */
 async function addItemToSheet(item) {
     try {
-        const newItem = await callAPI('addItem', { item });
-        itemData.push(newItem);
-        renderTable();
+        const result = await addTask(item);
+        
+        // 重新載入數據以確保同步
+        await loadItems();
+        
         showSuccess('項目新增成功！');
-        return newItem;
+        return result;
     } catch (error) {
         showError('新增項目失敗: ' + error.message);
         throw error;
@@ -96,14 +229,13 @@ async function addItemToSheet(item) {
  */
 async function updateItemInSheet(item) {
     try {
-        const updatedItem = await callAPI('updateItem', { item });
-        const index = itemData.findIndex(data => data.id == item.id);
-        if (index !== -1) {
-            itemData[index] = updatedItem;
-            renderTable();
-            showSuccess('項目更新成功！');
-        }
-        return updatedItem;
+        const result = await updateTask(item);
+        
+        // 重新載入數據以確保同步
+        await loadItems();
+        
+        showSuccess('項目更新成功！');
+        return result;
     } catch (error) {
         showError('更新項目失敗: ' + error.message);
         throw error;
@@ -115,63 +247,38 @@ async function updateItemInSheet(item) {
  */
 async function deleteItemFromSheet(id) {
     try {
-        await callAPI('deleteItem', { id });
-        itemData = itemData.filter(item => item.id != id);
-        renderTable();
+        const result = await deleteTask(id);
+        
+        // 重新載入數據以確保同步
+        await loadItems();
+        
         showSuccess('項目刪除成功！');
+        return result;
     } catch (error) {
         showError('刪除項目失敗: ' + error.message);
         throw error;
     }
 }
 
-/**
- * 切換項目狀態
- */
-async function toggleItemStatusInSheet(id) {
-    try {
-        const result = await callAPI('toggleStatus', { id });
-        const item = itemData.find(data => data.id == id);
-        if (item) {
-            item.status = result.status;
-            renderTable();
-            showSuccess('狀態更新成功！');
-        }
-    } catch (error) {
-        showError('狀態更新失敗: ' + error.message);
-        throw error;
-    }
-}
-
-// ========== UI 狀態管理 ==========
+// ========== 顯示功能 ==========
 
 /**
- * 顯示加載狀態
+ * 顯示載入中狀態
  */
 function showLoading() {
-    let loadingDiv = document.getElementById('loading');
-    if (!loadingDiv) {
-        loadingDiv = document.createElement('div');
-        loadingDiv.id = 'loading';
-        loadingDiv.className = 'loading-overlay';
-        loadingDiv.innerHTML = `
-            <div class="loading-content">
-                <div class="loading-spinner"></div>
-                <p>處理中...</p>
-            </div>
-        `;
-        document.body.appendChild(loadingDiv);
+    const loadingEl = document.getElementById('loading');
+    if (loadingEl) {
+        loadingEl.style.display = 'flex';
     }
-    loadingDiv.style.display = 'flex';
 }
 
 /**
- * 隱藏加載狀態
+ * 隱藏載入中狀態
  */
 function hideLoading() {
-    const loadingDiv = document.getElementById('loading');
-    if (loadingDiv) {
-        loadingDiv.style.display = 'none';
+    const loadingEl = document.getElementById('loading');
+    if (loadingEl) {
+        loadingEl.style.display = 'none';
     }
 }
 
@@ -179,131 +286,80 @@ function hideLoading() {
  * 顯示成功訊息
  */
 function showSuccess(message) {
-    showMessage(message, 'success');
+    console.log('✅ ' + message);
+    
+    // 創建成功提示
+    const toast = document.createElement('div');
+    toast.className = 'toast toast-success';
+    toast.textContent = message;
+    toast.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #28a745;
+        color: white;
+        padding: 12px 20px;
+        border-radius: 4px;
+        z-index: 1000;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    `;
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        if (toast.parentNode) {
+            toast.parentNode.removeChild(toast);
+        }
+    }, 3000);
 }
 
 /**
  * 顯示錯誤訊息
  */
 function showError(message) {
-    showMessage(message, 'error');
-}
-
-/**
- * 顯示訊息
- */
-function showMessage(message, type = 'info') {
-    // 移除現有訊息
-    const existingMessage = document.querySelector('.message-toast');
-    if (existingMessage) {
-        existingMessage.remove();
-    }
+    console.error('❌ ' + message);
     
-    const messageDiv = document.createElement('div');
-    messageDiv.className = `message-toast message-${type}`;
-    messageDiv.textContent = message;
+    // 創建錯誤提示
+    const toast = document.createElement('div');
+    toast.className = 'toast toast-error';
+    toast.textContent = message;
+    toast.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #dc3545;
+        color: white;
+        padding: 12px 20px;
+        border-radius: 4px;
+        z-index: 1000;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        max-width: 400px;
+        word-wrap: break-word;
+    `;
     
-    document.body.appendChild(messageDiv);
+    document.body.appendChild(toast);
     
-    // 3秒後自動移除
     setTimeout(() => {
-        if (messageDiv.parentNode) {
-            messageDiv.remove();
+        if (toast.parentNode) {
+            toast.parentNode.removeChild(toast);
         }
-    }, 3000);
-}
-
-// ========== 初始化 ==========
-
-// 初始化
-document.addEventListener('DOMContentLoaded', function() {
-    // 檢查配置
-    if (GOOGLE_APPS_SCRIPT_URL === 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') {
-        showError('請先完成 Google Apps Script 配置！查看控制台獲取設置說明。');
-        console.error(`
-=============================================================
-🚨 配置說明 🚨
-=============================================================
-
-請按照以下步驟完成設置：
-
-1. 前往 https://script.google.com
-2. 創建新項目，貼上 google-apps-script.js 中的代碼
-3. 創建 Google Sheets 並複製 ID 
-4. 在 Google Apps Script 中設置 SHEET_ID
-5. 部署為網頁應用程式
-6. 複製部署 URL 並更新此文件中的 GOOGLE_APPS_SCRIPT_URL
-
-詳細說明請參考 Google-Sheets-設置指南.md
-
-=============================================================
-        `);
-        return;
-    }
-    
-    // 載入數據並初始化
-    loadItems();
-    bindEvents();
-});
-
-// ========== 事件綁定 ==========
-
-// 綁定事件
-function bindEvents() {
-    addBtn.addEventListener('click', openAddModal);
-    closeBtn.addEventListener('click', closeModal);
-    cancelBtn.addEventListener('click', closeModal);
-    meetingForm.addEventListener('submit', handleFormSubmit);
-    statusFilter.addEventListener('change', renderTable);
-    groupFilter.addEventListener('change', renderTable);
-    
-    // 點擊模態框外部關閉
-    window.addEventListener('click', function(event) {
-        if (event.target === modal) {
-            closeModal();
-        }
-    });
-    
-    // 鍵盤快捷鍵
-    document.addEventListener('keydown', function(event) {
-        // ESC 鍵關閉模態框
-        if (event.key === 'Escape') {
-            closeModal();
-        }
-        
-        // Ctrl+N 新增項目
-        if (event.ctrlKey && event.key === 'n') {
-            event.preventDefault();
-            openAddModal();
-        }
-    });
+    }, 5000);
 }
 
 // ========== 表格渲染 ==========
 
-// 渲染表格
+/**
+ * 渲染表格
+ */
 function renderTable() {
-    const statusFilterValue = statusFilter.value;
-    const groupFilterValue = groupFilter.value;
-    let filteredData = itemData;
-    
-    // 按狀態篩選
-    if (statusFilterValue !== 'all') {
-        filteredData = filteredData.filter(item => item.status === statusFilterValue);
-    }
-    
-    // 按分組篩選
-    if (groupFilterValue !== 'all') {
-        filteredData = filteredData.filter(item => item.groupName === groupFilterValue);
-    }
-    
+    const filteredData = getFilteredData();
     tableBody.innerHTML = '';
     
     if (filteredData.length === 0) {
         tableBody.innerHTML = `
             <tr>
-                <td colspan="5" style="text-align: center; padding: 40px; color: #666;">
-                    暫無數據
+                <td colspan="6" style="text-align: center; color: #666; padding: 20px;">
+                    暫無數據，點擊"新增項目"開始添加
                 </td>
             </tr>
         `;
@@ -313,144 +369,144 @@ function renderTable() {
     filteredData.forEach(item => {
         const row = document.createElement('tr');
         row.innerHTML = `
-            <td>${item.groupName}</td>
-            <td>${item.itemName}</td>
-            <td>${item.quantity}</td>
+            <td>${item.name || ''}</td>
+            <td><span class="group-tag group-${item.group || ''}">${item.group || ''}</span></td>
+            <td><span class="status-tag status-${item.status || ''}">${item.status || ''}</span></td>
+            <td>${item.assignee || ''}</td>
             <td>
-                <span class="status ${item.status}">
-                    ${item.status === 'completed' ? '已完成' : '未完成'}
-                </span>
-            </td>
-            <td>
-                <div class="actions">
-                    <button class="btn btn-warning" onclick="editItem(${item.id})">
-                        編輯
-                    </button>
-                    <button class="btn ${item.status === 'completed' ? 'btn-secondary' : 'btn-success'}" 
-                            onclick="toggleStatus(${item.id})">
-                        ${item.status === 'completed' ? '標記未完成' : '標記完成'}
-                    </button>
-                    <button class="btn btn-danger" onclick="deleteItem(${item.id})">
-                        刪除
-                    </button>
-                </div>
+                <button class="btn-edit" onclick="editItem('${item.id}')">編輯</button>
+                <button class="btn-delete" onclick="deleteItem('${item.id}')">刪除</button>
             </td>
         `;
         tableBody.appendChild(row);
     });
 }
 
-// ========== 模態框操作 ==========
-
-// 打開新增模態框
-function openAddModal() {
-    editingId = null;
-    modalTitle.textContent = '🍖 新增準備項目';
-    meetingForm.reset();
-    document.getElementById('status').value = 'incomplete';
-    modal.style.display = 'block';
-    document.body.style.overflow = 'hidden';
+/**
+ * 獲取過濾後的數據
+ */
+function getFilteredData() {
+    let filtered = [...itemData];
+    
+    const statusFilterValue = statusFilter.value;
+    const groupFilterValue = groupFilter.value;
+    
+    if (statusFilterValue && statusFilterValue !== 'all') {
+        filtered = filtered.filter(item => item.status === statusFilterValue);
+    }
+    
+    if (groupFilterValue && groupFilterValue !== 'all') {
+        filtered = filtered.filter(item => item.group === groupFilterValue);
+    }
+    
+    return filtered;
 }
 
-// 打開編輯模態框
+// ========== 項目操作 ==========
+
+/**
+ * 編輯項目
+ */
 function editItem(id) {
-    const item = itemData.find(data => data.id == id);
+    const item = itemData.find(item => item.id == id);
     if (!item) return;
     
     editingId = id;
-    modalTitle.textContent = '⚙️ 編輯準備項目';
+    modalTitle.textContent = '編輯項目';
     
-    // 填充表單數據
-    document.getElementById('groupName').value = item.groupName;
-    document.getElementById('itemName').value = item.itemName;
-    document.getElementById('quantity').value = item.quantity;
-    document.getElementById('status').value = item.status;
+    document.getElementById('itemName').value = item.name || '';
+    document.getElementById('itemGroup').value = item.group || '';
+    document.getElementById('itemStatus').value = item.status || '';
+    document.getElementById('itemAssignee').value = item.assignee || '';
     
     modal.style.display = 'block';
-    document.body.style.overflow = 'hidden';
 }
 
-// 關閉模態框
-function closeModal() {
-    modal.style.display = 'none';
-    document.body.style.overflow = 'auto';
+/**
+ * 刪除項目
+ */
+async function deleteItem(id) {
+    if (!confirm('確定要刪除這個項目嗎？')) return;
+    
+    try {
+        await deleteItemFromSheet(id);
+    } catch (error) {
+        console.error('刪除失敗:', error);
+    }
+}
+
+// ========== 事件監聽器 ==========
+
+// 頁面載入完成時初始化
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('頁面載入完成，開始初始化...');
+    loadItems();
+});
+
+// 新增按鈕
+addBtn.addEventListener('click', function() {
     editingId = null;
+    modalTitle.textContent = '新增項目';
     meetingForm.reset();
-}
+    modal.style.display = 'block';
+});
 
-// ========== 數據操作 ==========
+// 關閉按鈕
+closeBtn.addEventListener('click', function() {
+    modal.style.display = 'none';
+});
 
-// 處理表單提交
-async function handleFormSubmit(event) {
-    event.preventDefault();
+// 取消按鈕
+cancelBtn.addEventListener('click', function() {
+    modal.style.display = 'none';
+});
+
+// 點擊模態框外部關閉
+window.addEventListener('click', function(event) {
+    if (event.target === modal) {
+        modal.style.display = 'none';
+    }
+});
+
+// 表單提交
+meetingForm.addEventListener('submit', async function(e) {
+    e.preventDefault();
     
     const formData = new FormData(meetingForm);
     const item = {
-        groupName: formData.get('groupName').trim(),
-        itemName: formData.get('itemName').trim(),
-        quantity: formData.get('quantity').trim(),
-        status: formData.get('status')
+        name: formData.get('itemName'),
+        group: formData.get('itemGroup'),
+        status: formData.get('itemStatus'),
+        assignee: formData.get('itemAssignee')
     };
-    
-    // 驗證必填欄位
-    if (!item.groupName || !item.itemName || !item.quantity) {
-        showError('請填寫所有必填欄位！');
-        return;
-    }
     
     try {
         if (editingId) {
-            // 編輯現有項目
             item.id = editingId;
             await updateItemInSheet(item);
         } else {
-            // 新增項目
             await addItemToSheet(item);
         }
         
-        closeModal();
+        modal.style.display = 'none';
+        meetingForm.reset();
     } catch (error) {
-        // 錯誤已在 API 函數中處理
-        console.error('表單提交錯誤:', error);
-    }
-}
-
-// 切換狀態
-async function toggleStatus(id) {
-    try {
-        await toggleItemStatusInSheet(id);
-    } catch (error) {
-        console.error('狀態切換錯誤:', error);
-    }
-}
-
-// 刪除項目
-async function deleteItem(id) {
-    if (confirm('確定要刪除這個準備項目嗎？')) {
-        try {
-            await deleteItemFromSheet(id);
-        } catch (error) {
-            console.error('刪除項目錯誤:', error);
-        }
-    }
-}
-
-// ========== 手動刷新功能 ==========
-
-/**
- * 手動刷新數據
- */
-async function refreshData() {
-    try {
-        await loadItems();
-    } catch (error) {
-        console.error('刷新數據失敗:', error);
-    }
-}
-
-// 在頁面可見時自動刷新
-document.addEventListener('visibilitychange', function() {
-    if (!document.hidden && GOOGLE_APPS_SCRIPT_URL !== 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') {
-        refreshData();
+        console.error('操作失敗:', error);
     }
 });
+
+// 過濾器變更
+statusFilter.addEventListener('change', renderTable);
+groupFilter.addEventListener('change', renderTable);
+
+// 刷新按鈕
+if (refreshBtn) {
+    refreshBtn.addEventListener('click', function() {
+        console.log('手動刷新數據...');
+        loadItems();
+    });
+}
+
+// 全域函數（供 HTML 調用）
+window.editItem = editItem;
+window.deleteItem = deleteItem;
