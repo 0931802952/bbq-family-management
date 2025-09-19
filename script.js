@@ -1,282 +1,12 @@
-// 數據存儲
-let itemData = [
-    // 郭家準備（海鮮類、雞、包肉菜葉）
-    {
-        id: 1,
-        groupName: "郭家",
-        itemName: "玉筍草蝦",
-        quantity: "12尾",
-        status: "incomplete"
-    },
-    {
-        id: 2,
-        groupName: "郭家",
-        itemName: "活生蝦",
-        quantity: "15隻",
-        status: "incomplete"
-    },
-    {
-        id: 3,
-        groupName: "郭家",
-        itemName: "雞胸",
-        quantity: "15片",
-        status: "incomplete"
-    },
-    {
-        id: 4,
-        groupName: "郭家",
-        itemName: "牛肉",
-        quantity: "1份",
-        status: "incomplete"
-    },
-    {
-        id: 5,
-        groupName: "郭家",
-        itemName: "豬肉",
-        quantity: "2盒",
-        status: "incomplete"
-    },
-    {
-        id: 6,
-        groupName: "郭家",
-        itemName: "肥腸鮮蝦",
-        quantity: "2隻",
-        status: "incomplete"
-    },
-    {
-        id: 7,
-        groupName: "郭家",
-        itemName: "蠔蛋主菜",
-        quantity: "2包",
-        status: "incomplete"
-    },
-    {
-        id: 8,
-        groupName: "郭家",
-        itemName: "蠔青菜",
-        quantity: "28片",
-        status: "incomplete"
-    },
-    {
-        id: 9,
-        groupName: "郭家",
-        itemName: "青菜",
-        quantity: "1包",
-        status: "incomplete"
-    },
-    {
-        id: 10,
-        groupName: "郭家",
-        itemName: "青豆",
-        quantity: "2罐",
-        status: "incomplete"
-    },
-    {
-        id: 11,
-        groupName: "郭家",
-        itemName: "木炭",
-        quantity: "適量",
-        status: "incomplete"
-    },
-    {
-        id: 12,
-        groupName: "郭家",
-        itemName: "塑膠杯",
-        quantity: "適量",
-        status: "incomplete"
-    },
-    {
-        id: 13,
-        groupName: "郭家",
-        itemName: "烤肉用具",
-        quantity: "1組",
-        status: "incomplete"
-    },
-    {
-        id: 14,
-        groupName: "郭家",
-        itemName: "肉包/蛋汁",
-        quantity: "適量",
-        status: "incomplete"
-    },
-    {
-        id: 15,
-        groupName: "郭家",
-        itemName: "百穀",
-        quantity: "適量",
-        status: "incomplete"
-    },
-    
-    // 哥家準備（牛羊豬）
-    {
-        id: 16,
-        groupName: "哥家",
-        itemName: "好市多牛小排",
-        quantity: "3盒",
-        status: "incomplete"
-    },
-    {
-        id: 17,
-        groupName: "哥家",
-        itemName: "好市多羊小排",
-        quantity: "1盒",
-        status: "incomplete"
-    },
-    {
-        id: 18,
-        groupName: "哥家",
-        itemName: "好市多松阪豬切片",
-        quantity: "2盒",
-        status: "incomplete"
-    },
-    {
-        id: 19,
-        groupName: "哥家",
-        itemName: "白豆",
-        quantity: "適量",
-        status: "incomplete"
-    },
-    {
-        id: 20,
-        groupName: "哥家",
-        itemName: "紅豆",
-        quantity: "1包",
-        status: "incomplete"
-    },
-    {
-        id: 21,
-        groupName: "哥家",
-        itemName: "蠔汁泡菜",
-        quantity: "2盒",
-        status: "incomplete"
-    },
-    {
-        id: 22,
-        groupName: "哥家",
-        itemName: "塑膠湯匙",
-        quantity: "適量",
-        status: "incomplete"
-    },
-    
-    // 翁家準備（飲料、水果、食器）
-    {
-        id: 23,
-        groupName: "翁家",
-        itemName: "香茅雞湯",
-        quantity: "適量",
-        status: "incomplete"
-    },
-    {
-        id: 24,
-        groupName: "翁家",
-        itemName: "紅茶湯包",
-        quantity: "適量",
-        status: "incomplete"
-    },
-    {
-        id: 25,
-        groupName: "翁家",
-        itemName: "杯子",
-        quantity: "適量",
-        status: "incomplete"
-    },
-    {
-        id: 26,
-        groupName: "翁家",
-        itemName: "音樂設備",
-        quantity: "1組",
-        status: "incomplete"
-    },
-    {
-        id: 27,
-        groupName: "翁家",
-        itemName: "打火機",
-        quantity: "數個",
-        status: "incomplete"
-    },
-    {
-        id: 28,
-        groupName: "翁家",
-        itemName: "音響接駁",
-        quantity: "1組",
-        status: "incomplete"
-    },
-    {
-        id: 29,
-        groupName: "翁家",
-        itemName: "紙盤",
-        quantity: "適量",
-        status: "incomplete"
-    },
-    {
-        id: 30,
-        groupName: "翁家",
-        itemName: "濕巾",
-        quantity: "數包",
-        status: "incomplete"
-    },
-    {
-        id: 31,
-        groupName: "翁家",
-        itemName: "衛生紙",
-        quantity: "數包",
-        status: "incomplete"
-    },
-    {
-        id: 32,
-        groupName: "翁家",
-        itemName: "Asahi SUPER DRY啤酒",
-        quantity: "金罐裝",
-        status: "incomplete"
-    },
-    {
-        id: 33,
-        groupName: "翁家",
-        itemName: "可樂果汁",
-        quantity: "適量",
-        status: "incomplete"
-    },
-    {
-        id: 34,
-        groupName: "翁家",
-        itemName: "花椰大烤肉醬",
-        quantity: "適量",
-        status: "incomplete"
-    },
-    {
-        id: 35,
-        groupName: "翁家",
-        itemName: "蒜泥",
-        quantity: "適量",
-        status: "incomplete"
-    },
-    {
-        id: 36,
-        groupName: "翁家",
-        itemName: "香茅調料",
-        quantity: "適量",
-        status: "incomplete"
-    },
-    {
-        id: 37,
-        groupName: "翁家",
-        itemName: "檸檬水和肉湯",
-        quantity: "適量",
-        status: "incomplete"
-    },
-    {
-        id: 38,
-        groupName: "翁家",
-        itemName: "汽水果汁",
-        quantity: "適量",
-        status: "incomplete"
-    }
-];
+// ========== 配置區域 ==========
+// 請將此 URL 替換為您的 Google Apps Script 部署 URL
+const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzBolK0PcAl4HW0piobSK-6U5es_oD_gA86PfdJtT-LJ-TGYCH9j4KXwTME9ZCIjxp3/exec';
 
-let currentId = 39;
+// ========== 數據存儲 ==========
+let itemData = []; // 現在數據將從 Google Sheets 載入
 let editingId = null;
 
-// DOM 元素
+// ========== DOM 元素 ==========
 const tableBody = document.getElementById('tableBody');
 const modal = document.getElementById('modal');
 const addBtn = document.getElementById('addBtn');
@@ -287,13 +17,236 @@ const modalTitle = document.getElementById('modalTitle');
 const statusFilter = document.getElementById('statusFilter');
 const groupFilter = document.getElementById('groupFilter');
 
+// ========== API 調用函數 ==========
 
+/**
+ * 調用 Google Apps Script API
+ */
+async function callAPI(action, data = {}) {
+    if (GOOGLE_APPS_SCRIPT_URL === 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') {
+        throw new Error('請先設置 Google Apps Script URL');
+    }
+    
+    showLoading();
+    
+    try {
+        const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                action: action,
+                ...data
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const result = await response.json();
+        
+        if (!result.success) {
+            throw new Error(result.data.error || '操作失敗');
+        }
+        
+        return result.data;
+    } catch (error) {
+        console.error('API 調用錯誤:', error);
+        showError('操作失敗: ' + error.message);
+        throw error;
+    } finally {
+        hideLoading();
+    }
+}
+
+/**
+ * 載入所有項目
+ */
+async function loadItems() {
+    try {
+        itemData = await callAPI('getItems');
+        renderTable();
+        showSuccess('數據載入成功！');
+    } catch (error) {
+        console.error('載入數據失敗:', error);
+        showError('載入數據失敗，請檢查網路連線或配置');
+    }
+}
+
+/**
+ * 新增項目到 Google Sheets
+ */
+async function addItemToSheet(item) {
+    try {
+        const newItem = await callAPI('addItem', { item });
+        itemData.push(newItem);
+        renderTable();
+        showSuccess('項目新增成功！');
+        return newItem;
+    } catch (error) {
+        showError('新增項目失敗: ' + error.message);
+        throw error;
+    }
+}
+
+/**
+ * 更新項目到 Google Sheets
+ */
+async function updateItemInSheet(item) {
+    try {
+        const updatedItem = await callAPI('updateItem', { item });
+        const index = itemData.findIndex(data => data.id == item.id);
+        if (index !== -1) {
+            itemData[index] = updatedItem;
+            renderTable();
+            showSuccess('項目更新成功！');
+        }
+        return updatedItem;
+    } catch (error) {
+        showError('更新項目失敗: ' + error.message);
+        throw error;
+    }
+}
+
+/**
+ * 從 Google Sheets 刪除項目
+ */
+async function deleteItemFromSheet(id) {
+    try {
+        await callAPI('deleteItem', { id });
+        itemData = itemData.filter(item => item.id != id);
+        renderTable();
+        showSuccess('項目刪除成功！');
+    } catch (error) {
+        showError('刪除項目失敗: ' + error.message);
+        throw error;
+    }
+}
+
+/**
+ * 切換項目狀態
+ */
+async function toggleItemStatusInSheet(id) {
+    try {
+        const result = await callAPI('toggleStatus', { id });
+        const item = itemData.find(data => data.id == id);
+        if (item) {
+            item.status = result.status;
+            renderTable();
+            showSuccess('狀態更新成功！');
+        }
+    } catch (error) {
+        showError('狀態更新失敗: ' + error.message);
+        throw error;
+    }
+}
+
+// ========== UI 狀態管理 ==========
+
+/**
+ * 顯示加載狀態
+ */
+function showLoading() {
+    let loadingDiv = document.getElementById('loading');
+    if (!loadingDiv) {
+        loadingDiv = document.createElement('div');
+        loadingDiv.id = 'loading';
+        loadingDiv.className = 'loading-overlay';
+        loadingDiv.innerHTML = `
+            <div class="loading-content">
+                <div class="loading-spinner"></div>
+                <p>處理中...</p>
+            </div>
+        `;
+        document.body.appendChild(loadingDiv);
+    }
+    loadingDiv.style.display = 'flex';
+}
+
+/**
+ * 隱藏加載狀態
+ */
+function hideLoading() {
+    const loadingDiv = document.getElementById('loading');
+    if (loadingDiv) {
+        loadingDiv.style.display = 'none';
+    }
+}
+
+/**
+ * 顯示成功訊息
+ */
+function showSuccess(message) {
+    showMessage(message, 'success');
+}
+
+/**
+ * 顯示錯誤訊息
+ */
+function showError(message) {
+    showMessage(message, 'error');
+}
+
+/**
+ * 顯示訊息
+ */
+function showMessage(message, type = 'info') {
+    // 移除現有訊息
+    const existingMessage = document.querySelector('.message-toast');
+    if (existingMessage) {
+        existingMessage.remove();
+    }
+    
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message-toast message-${type}`;
+    messageDiv.textContent = message;
+    
+    document.body.appendChild(messageDiv);
+    
+    // 3秒後自動移除
+    setTimeout(() => {
+        if (messageDiv.parentNode) {
+            messageDiv.remove();
+        }
+    }, 3000);
+}
+
+// ========== 初始化 ==========
 
 // 初始化
 document.addEventListener('DOMContentLoaded', function() {
-    renderTable();
+    // 檢查配置
+    if (GOOGLE_APPS_SCRIPT_URL === 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') {
+        showError('請先完成 Google Apps Script 配置！查看控制台獲取設置說明。');
+        console.error(`
+=============================================================
+🚨 配置說明 🚨
+=============================================================
+
+請按照以下步驟完成設置：
+
+1. 前往 https://script.google.com
+2. 創建新項目，貼上 google-apps-script.js 中的代碼
+3. 創建 Google Sheets 並複製 ID 
+4. 在 Google Apps Script 中設置 SHEET_ID
+5. 部署為網頁應用程式
+6. 複製部署 URL 並更新此文件中的 GOOGLE_APPS_SCRIPT_URL
+
+詳細說明請參考 Google-Sheets-設置指南.md
+
+=============================================================
+        `);
+        return;
+    }
+    
+    // 載入數據並初始化
+    loadItems();
     bindEvents();
 });
+
+// ========== 事件綁定 ==========
 
 // 綁定事件
 function bindEvents() {
@@ -303,7 +256,6 @@ function bindEvents() {
     meetingForm.addEventListener('submit', handleFormSubmit);
     statusFilter.addEventListener('change', renderTable);
     groupFilter.addEventListener('change', renderTable);
-
     
     // 點擊模態框外部關閉
     window.addEventListener('click', function(event) {
@@ -311,9 +263,23 @@ function bindEvents() {
             closeModal();
         }
     });
+    
+    // 鍵盤快捷鍵
+    document.addEventListener('keydown', function(event) {
+        // ESC 鍵關閉模態框
+        if (event.key === 'Escape') {
+            closeModal();
+        }
+        
+        // Ctrl+N 新增項目
+        if (event.ctrlKey && event.key === 'n') {
+            event.preventDefault();
+            openAddModal();
+        }
+    });
 }
 
-
+// ========== 表格渲染 ==========
 
 // 渲染表格
 function renderTable() {
@@ -374,6 +340,8 @@ function renderTable() {
     });
 }
 
+// ========== 模態框操作 ==========
+
 // 打開新增模態框
 function openAddModal() {
     editingId = null;
@@ -386,11 +354,11 @@ function openAddModal() {
 
 // 打開編輯模態框
 function editItem(id) {
-    const item = itemData.find(data => data.id === id);
+    const item = itemData.find(data => data.id == id);
     if (!item) return;
     
     editingId = id;
-    modalTitle.textContent = '⚙️ 編輯烤肉項目';
+    modalTitle.textContent = '⚙️ 編輯準備項目';
     
     // 填充表單數據
     document.getElementById('groupName').value = item.groupName;
@@ -410,12 +378,14 @@ function closeModal() {
     meetingForm.reset();
 }
 
+// ========== 數據操作 ==========
+
 // 處理表單提交
-function handleFormSubmit(event) {
+async function handleFormSubmit(event) {
     event.preventDefault();
     
     const formData = new FormData(meetingForm);
-    const newItem = {
+    const item = {
         groupName: formData.get('groupName').trim(),
         itemName: formData.get('itemName').trim(),
         quantity: formData.get('quantity').trim(),
@@ -423,210 +393,64 @@ function handleFormSubmit(event) {
     };
     
     // 驗證必填欄位
-    if (!newItem.groupName || !newItem.itemName || !newItem.quantity) {
-        alert('請填寫所有必填欄位！');
+    if (!item.groupName || !item.itemName || !item.quantity) {
+        showError('請填寫所有必填欄位！');
         return;
     }
     
-    if (editingId) {
-        // 編輯現有項目
-        const index = itemData.findIndex(item => item.id === editingId);
-        if (index !== -1) {
-            itemData[index] = { ...newItem, id: editingId };
-            showNotification('🍖 烤肉項目已更新！', 'success');
+    try {
+        if (editingId) {
+            // 編輯現有項目
+            item.id = editingId;
+            await updateItemInSheet(item);
+        } else {
+            // 新增項目
+            await addItemToSheet(item);
         }
-    } else {
-        // 新增項目
-        newItem.id = currentId++;
-        itemData.push(newItem);
-        showNotification('🎉 烤肉項目已新增！', 'success');
+        
+        closeModal();
+    } catch (error) {
+        // 錯誤已在 API 函數中處理
+        console.error('表單提交錯誤:', error);
     }
-    
-    renderTable();
-    closeModal();
 }
 
 // 切換狀態
-function toggleStatus(id) {
-    const item = itemData.find(data => data.id === id);
-    if (item) {
-        item.status = item.status === 'completed' ? 'incomplete' : 'completed';
-        const statusText = item.status === 'completed' ? '已完成' : '未完成';
-        showNotification(`狀態已更新為：${statusText}`, 'info');
-        renderTable();
+async function toggleStatus(id) {
+    try {
+        await toggleItemStatusInSheet(id);
+    } catch (error) {
+        console.error('狀態切換錯誤:', error);
     }
 }
 
 // 刪除項目
-function deleteItem(id) {
-    if (confirm('確定要刪除這個烤肉項目嗎？')) {
-        const index = itemData.findIndex(item => item.id === id);
-        if (index !== -1) {
-            itemData.splice(index, 1);
-            showNotification('🗑️ 烤肉項目已刪除！', 'error');
-            renderTable();
+async function deleteItem(id) {
+    if (confirm('確定要刪除這個準備項目嗎？')) {
+        try {
+            await deleteItemFromSheet(id);
+        } catch (error) {
+            console.error('刪除項目錯誤:', error);
         }
     }
 }
 
-// 顯示通知
-function showNotification(message, type = 'info') {
-    // 創建通知元素
-    const notification = document.createElement('div');
-    notification.className = `notification notification-${type}`;
-    notification.innerHTML = `
-        <span>${message}</span>
-        <button onclick="this.parentElement.remove()">&times;</button>
-    `;
-    
-    // 添加通知樣式（如果還沒有）
-    if (!document.querySelector('#notificationStyles')) {
-        const style = document.createElement('style');
-        style.id = 'notificationStyles';
-        style.textContent = `
-            .notification {
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                padding: 15px 20px;
-                border-radius: 5px;
-                color: white;
-                font-weight: 500;
-                z-index: 10000;
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                min-width: 300px;
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-                animation: slideIn 0.3s ease;
-            }
-            
-            .notification-success {
-                background: #28a745;
-            }
-            
-            .notification-error {
-                background: #dc3545;
-            }
-            
-            .notification-info {
-                background: #17a2b8;
-            }
-            
-            .notification button {
-                background: none;
-                border: none;
-                color: white;
-                font-size: 18px;
-                cursor: pointer;
-                margin-left: 15px;
-                padding: 0;
-                width: 20px;
-                height: 20px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-            
-            @keyframes slideIn {
-                from {
-                    transform: translateX(100%);
-                    opacity: 0;
-                }
-                to {
-                    transform: translateX(0);
-                    opacity: 1;
-                }
-            }
-        `;
-        document.head.appendChild(style);
+// ========== 手動刷新功能 ==========
+
+/**
+ * 手動刷新數據
+ */
+async function refreshData() {
+    try {
+        await loadItems();
+    } catch (error) {
+        console.error('刷新數據失敗:', error);
     }
-    
-    // 添加到頁面
-    document.body.appendChild(notification);
-    
-    // 3秒後自動移除
-    setTimeout(() => {
-        if (notification.parentElement) {
-            notification.remove();
-        }
-    }, 3000);
 }
 
-// 鍵盤快捷鍵
-document.addEventListener('keydown', function(event) {
-    // ESC 鍵關閉模態框
-    if (event.key === 'Escape') {
-        closeModal();
-    }
-    
-    // Ctrl+N 新增項目
-    if (event.ctrlKey && event.key === 'n') {
-        event.preventDefault();
-        openAddModal();
+// 在頁面可見時自動刷新
+document.addEventListener('visibilitychange', function() {
+    if (!document.hidden && GOOGLE_APPS_SCRIPT_URL !== 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') {
+        refreshData();
     }
 });
-
-// 自動保存到 localStorage
-function saveToLocalStorage() {
-    localStorage.setItem('itemData', JSON.stringify(itemData));
-    localStorage.setItem('currentId', currentId.toString());
-}
-
-// 從 localStorage 載入數據
-function loadFromLocalStorage() {
-    const savedData = localStorage.getItem('itemData');
-    const savedId = localStorage.getItem('currentId');
-    
-    if (savedData) {
-        itemData = JSON.parse(savedData);
-    }
-    
-    if (savedId) {
-        currentId = parseInt(savedId);
-    }
-}
-
-// 在數據變更時自動保存
-const originalPush = itemData.push;
-const originalSplice = itemData.splice;
-
-// 重寫 push 方法
-Object.defineProperty(itemData, 'push', {
-    value: function(...args) {
-        const result = originalPush.apply(this, args);
-        saveToLocalStorage();
-        return result;
-    }
-});
-
-// 監聽數據變更
-function updateItemData() {
-    saveToLocalStorage();
-}
-
-// 在頁面載入時從 localStorage 載入數據
-document.addEventListener('DOMContentLoaded', function() {
-    loadFromLocalStorage();
-    renderTable();
-});
-
-// 在每次操作後保存數據
-const originalToggleStatus = toggleStatus;
-const originalDeleteItem = deleteItem;
-const originalHandleFormSubmit = handleFormSubmit;
-
-toggleStatus = function(id) {
-    originalToggleStatus(id);
-    saveToLocalStorage();
-};
-
-deleteItem = function(id) {
-    originalDeleteItem(id);
-    saveToLocalStorage();
-};
-
-handleFormSubmit = function(event) {
-    originalHandleFormSubmit(event);
-    saveToLocalStorage();
-};
