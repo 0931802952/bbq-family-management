@@ -13,7 +13,7 @@
 
         body {
             font-family: 'Arial', 'Microsoft JhengHei', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #d7cdc1 0%, #c9b7a8 100%);
             min-height: 100vh;
             padding: 20px;
         }
@@ -21,14 +21,15 @@
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            background: white;
+            background: rgba(248, 245, 242, 0.95);
             border-radius: 15px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            box-shadow: 0 20px 40px rgba(121, 108, 99, 0.15);
             overflow: hidden;
+            backdrop-filter: blur(10px);
         }
 
         .header {
-            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            background: linear-gradient(135deg, #b8a99e, #a69590);
             color: white;
             padding: 30px;
             text-align: center;
@@ -37,7 +38,7 @@
         .header h1 {
             font-size: 2.5em;
             margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
         }
 
         .header p {
@@ -50,15 +51,16 @@
         }
 
         .form-section {
-            background: #f8f9fa;
+            background: rgba(240, 236, 230, 0.8);
             padding: 25px;
             border-radius: 10px;
             margin-bottom: 30px;
-            border-left: 5px solid #ff6b6b;
+            border-left: 5px solid #b8a99e;
+            backdrop-filter: blur(5px);
         }
 
         .form-section h2 {
-            color: #333;
+            color: #7a6b66;
             margin-bottom: 20px;
             font-size: 1.5em;
         }
@@ -78,27 +80,29 @@
         .form-group label {
             font-weight: bold;
             margin-bottom: 8px;
-            color: #555;
+            color: #8b7d77;
         }
 
         .form-group input,
         .form-group select {
             padding: 12px;
-            border: 2px solid #ddd;
+            border: 2px solid #d4c5bb;
             border-radius: 8px;
             font-size: 16px;
             transition: border-color 0.3s ease;
+            background: rgba(255, 252, 248, 0.9);
+            color: #7a6b66;
         }
 
         .form-group input:focus,
         .form-group select:focus {
             outline: none;
-            border-color: #ff6b6b;
-            box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.1);
+            border-color: #b8a99e;
+            box-shadow: 0 0 0 3px rgba(184, 169, 158, 0.15);
         }
 
         .btn {
-            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            background: linear-gradient(135deg, #b8a99e, #a69590);
             color: white;
             border: none;
             padding: 15px 30px;
@@ -111,18 +115,19 @@
 
         .btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+            box-shadow: 0 5px 15px rgba(184, 169, 158, 0.4);
         }
 
         .tasks-section {
-            background: white;
+            background: rgba(250, 247, 244, 0.9);
             border-radius: 10px;
             overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 5px 15px rgba(121, 108, 99, 0.1);
+            backdrop-filter: blur(5px);
         }
 
         .tasks-header {
-            background: #667eea;
+            background: linear-gradient(135deg, #c7b8a8, #b8a99e);
             color: white;
             padding: 20px;
             display: flex;
@@ -153,8 +158,8 @@
             padding: 8px 12px;
             border: none;
             border-radius: 5px;
-            background: white;
-            color: #333;
+            background: rgba(255, 252, 248, 0.95);
+            color: #7a6b66;
             min-width: 120px;
         }
 
@@ -170,20 +175,20 @@
         th, td {
             padding: 15px;
             text-align: left;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid #e8ddd4;
         }
 
         th {
-            background: #f8f9fa;
+            background: rgba(245, 238, 230, 0.8);
             font-weight: bold;
-            color: #555;
+            color: #8b7d77;
             text-transform: uppercase;
             font-size: 0.9em;
             letter-spacing: 1px;
         }
 
         tr:hover {
-            background-color: #f8f9fa;
+            background-color: rgba(245, 238, 230, 0.5);
         }
 
         .status-badge {
@@ -195,18 +200,18 @@
         }
 
         .status-pending {
-            background: #fff3cd;
-            color: #856404;
+            background: rgba(220, 204, 188, 0.8);
+            color: #8b7d6f;
         }
 
         .status-in-progress {
-            background: #cce5ff;
-            color: #004085;
+            background: rgba(199, 208, 196, 0.8);
+            color: #7a8677;
         }
 
         .status-completed {
-            background: #d4edda;
-            color: #155724;
+            background: rgba(184, 196, 208, 0.8);
+            color: #6d7a86;
         }
 
         .status-badge:hover {
@@ -235,28 +240,28 @@
         }
 
         .edit-btn {
-            background: #17a2b8;
+            background: #a8b8b3;
             color: white;
         }
 
         .edit-btn:hover {
-            background: #138496;
+            background: #97a8a3;
             transform: translateY(-1px);
         }
 
         .delete-btn {
-            background: #dc3545;
+            background: #c7a9a9;
             color: white;
         }
 
         .delete-btn:hover {
-            background: #c82333;
+            background: #b89999;
             transform: translateY(-1px);
         }
 
         .text-center {
             text-align: center;
-            color: #666;
+            color: #a69ca0;
             font-style: italic;
             padding: 40px;
         }
@@ -270,17 +275,19 @@
             top: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
+            background-color: rgba(121, 108, 99, 0.5);
+            backdrop-filter: blur(5px);
         }
 
         .modal-content {
-            background-color: white;
+            background: linear-gradient(135deg, rgba(250, 247, 244, 0.98), rgba(245, 238, 230, 0.98));
             margin: 10% auto;
             padding: 30px;
             border-radius: 10px;
             width: 90%;
             max-width: 500px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            box-shadow: 0 20px 40px rgba(121, 108, 99, 0.3);
+            backdrop-filter: blur(10px);
         }
 
         .modal-header {
@@ -289,16 +296,16 @@
             align-items: center;
             margin-bottom: 20px;
             padding-bottom: 15px;
-            border-bottom: 2px solid #eee;
+            border-bottom: 2px solid #e8ddd4;
         }
 
         .modal-header h3 {
-            color: #333;
+            color: #7a6b66;
             margin: 0;
         }
 
         .close {
-            color: #aaa;
+            color: #a69ca0;
             font-size: 28px;
             font-weight: bold;
             cursor: pointer;
@@ -306,7 +313,7 @@
         }
 
         .close:hover {
-            color: #333;
+            color: #7a6b66;
         }
 
         @media (max-width: 768px) {
@@ -338,7 +345,7 @@
         .loading::after {
             content: "載入中...";
             font-size: 1.2em;
-            color: #666;
+            color: #a69ca0;
         }
     </style>
 </head>
@@ -422,7 +429,7 @@
                         </thead>
                         <tbody id="taskList">
                             <!-- 項目列表將由 JavaScript 填充 -->
-                            <tr><td colspan="4" class="text-center">載入中...</td></tr>
+                            <tr><td colspan="5" class="text-center">載入中...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -469,12 +476,344 @@
                 
                 <div style="display: flex; gap: 15px; margin-top: 25px;">
                     <button type="submit" class="btn" style="flex: 1;">✅ 保存變更</button>
-                    <button type="button" class="btn" style="flex: 1; background: #6c757d;" onclick="closeEditModal()">❌ 取消</button>
+                    <button type="button" class="btn" style="flex: 1; background: linear-gradient(135deg, #a69ca0, #978d91);" onclick="closeEditModal()">❌ 取消</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script>
+        // 家庭分組選項
+        const familyOptions = [
+            { value: '', text: '請選擇家庭分組' },
+            { value: '郭家', text: '郭家' },
+            { value: '哥家', text: '哥家' },
+            { value: '翁家', text: '翁家' }
+        ];
+
+        // 狀態選項
+        const statusOptions = [
+            { value: '待處理', text: '待處理' },
+            { value: '進行中', text: '進行中' },
+            { value: '已完成', text: '已完成' }
+        ];
+
+        // Google Apps Script URL
+        const API_URL = 'https://script.google.com/macros/s/AKfycbxRK7Q2jL7bGDigcuL6XHthkH1PJPtEEaWarfl-DDTw9CBU7FI80Rl80mVJSLpmV7ac/exec';
+        
+        let tasks = [];
+        let editingRowIndex = null;
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeForm();
+            loadTasks();
+            
+            // 事件監聽器
+            document.getElementById('taskForm').addEventListener('submit', handleAddTask);
+            document.getElementById('editForm').addEventListener('submit', handleEditSubmit);
+            document.getElementById('filterFamily').addEventListener('change', renderTasks);
+            document.getElementById('filterStatus').addEventListener('change', renderTasks);
+        });
+
+        // 初始化表單選項
+        function initializeForm() {
+            const familySelect = document.getElementById('familyGroup');
+            const statusSelect = document.getElementById('taskStatus');
+            
+            // 填充家庭分組選項
+            familyOptions.forEach(option => {
+                const optionElement = document.createElement('option');
+                optionElement.value = option.value;
+                optionElement.textContent = option.text;
+                familySelect.appendChild(optionElement);
+            });
+            
+            // 填充狀態選項
+            statusOptions.forEach(option => {
+                const optionElement = document.createElement('option');
+                optionElement.value = option.value;
+                optionElement.textContent = option.text;
+                statusSelect.appendChild(optionElement);
+            });
+        }
+
+        // 載入任務
+        function loadTasks() {
+            const script = document.createElement('script');
+            script.src = `${API_URL}?action=read&callback=handleTasksLoaded`;
+            document.head.appendChild(script);
+        }
+
+        // 處理載入的任務
+        window.handleTasksLoaded = function(data) {
+            if (data.success) {
+                tasks = data.data || [];
+                renderTasks();
+            } else {
+                console.error('載入資料失敗:', data.message);
+                showError('載入資料失敗: ' + data.message);
+            }
+        };
+
+        // 顯示錯誤
+        function showError(message) {
+            document.getElementById('taskList').innerHTML = `
+                <tr><td colspan="5" class="text-center" style="color: #c7a9a9;">${message}</td></tr>
+            `;
+        }
+
+        // 處理新增任務
+        function handleAddTask(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const taskData = {
+                itemName: formData.get('itemName'),
+                familyGroup: formData.get('familyGroup'),
+                quantity: formData.get('quantity'),
+                status: formData.get('status')
+            };
+
+            addTask(taskData);
+        }
+
+        // 新增任務
+        function addTask(taskData) {
+            const params = new URLSearchParams({
+                action: 'add',
+                callback: 'handleAddResult',
+                ...taskData
+            });
+            
+            const script = document.createElement('script');
+            script.src = `${API_URL}?${params}`;
+            document.head.appendChild(script);
+        }
+
+        // 處理新增結果
+        window.handleAddResult = function(data) {
+            if (data.success) {
+                document.getElementById('taskForm').reset();
+                loadTasks();
+                alert('新增成功！');
+            } else {
+                console.error('新增失敗:', data.message);
+                alert('新增失敗: ' + data.message);
+            }
+        };
+
+        // 渲染任務列表
+        function renderTasks() {
+            const filterFamily = document.getElementById('filterFamily').value;
+            const filterStatus = document.getElementById('filterStatus').value;
+            
+            let filteredTasks = tasks;
+            
+            if (filterFamily) {
+                filteredTasks = filteredTasks.filter(task => task.familyGroup === filterFamily);
+            }
+            
+            if (filterStatus) {
+                filteredTasks = filteredTasks.filter(task => task.status === filterStatus);
+            }
+
+            const taskList = document.getElementById('taskList');
+            
+            if (filteredTasks.length === 0) {
+                taskList.innerHTML = `
+                    <tr><td colspan="5" class="text-center">
+                        ${tasks.length === 0 ? '還沒有任務項目，趕快新增吧！' : '沒有符合篩選條件的項目'}
+                    </td></tr>
+                `;
+                return;
+            }
+
+            taskList.innerHTML = filteredTasks.map((task, index) => {
+                const originalIndex = tasks.findIndex(t => 
+                    t.itemName === task.itemName && 
+                    t.familyGroup === task.familyGroup
+                );
+                
+                return `
+                    <tr>
+                        <td>${task.itemName || ''}</td>
+                        <td>${task.familyGroup || ''}</td>
+                        <td>${task.quantity || ''}</td>
+                        <td>
+                            <span class="status-badge ${getStatusClass(task.status)}" 
+                                  onclick="changeStatus(${originalIndex})">
+                                ${task.status || '待處理'}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="action-btn edit-btn" onclick="handleEditClick(${originalIndex})">編輯</button>
+                                <button class="action-btn delete-btn" onclick="handleDeleteClick(${originalIndex})">刪除</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // 獲取狀態CSS類
+        function getStatusClass(status) {
+            switch(status) {
+                case '待處理': return 'status-pending';
+                case '進行中': return 'status-in-progress';
+                case '已完成': return 'status-completed';
+                default: return 'status-pending';
+            }
+        }
+
+        // 變更狀態
+        function changeStatus(rowIndex) {
+            if (rowIndex < 0 || rowIndex >= tasks.length) return;
+
+            const currentStatus = tasks[rowIndex].status;
+            let newStatus;
+            
+            switch(currentStatus) {
+                case '待處理': newStatus = '進行中'; break;
+                case '進行中': newStatus = '已完成'; break;
+                case '已完成': newStatus = '待處理'; break;
+                default: newStatus = '進行中';
+            }
+
+            updateStatus(rowIndex, newStatus);
+        }
+
+        // 更新狀態
+        function updateStatus(rowIndex, newStatus) {
+            const params = new URLSearchParams({
+                action: 'updateStatus',
+                callback: 'handleUpdateStatusResult',
+                rowIndex: rowIndex + 2,
+                status: newStatus
+            });
+            
+            const script = document.createElement('script');
+            script.src = `${API_URL}?${params}`;
+            document.head.appendChild(script);
+        }
+
+        // 處理更新狀態結果
+        window.handleUpdateStatusResult = function(data) {
+            if (data.success) {
+                loadTasks();
+            } else {
+                console.error('更新狀態失敗:', data.message);
+                alert('更新狀態失敗: ' + data.message);
+            }
+        };
+
+        // 處理編輯點擊
+        function handleEditClick(rowIndex) {
+            if (rowIndex < 0 || rowIndex >= tasks.length) return;
+
+            editingRowIndex = rowIndex;
+            const task = tasks[rowIndex];
+            
+            document.getElementById('editName').value = task.itemName || '';
+            document.getElementById('editGroup').value = task.familyGroup || '';
+            document.getElementById('editQuantity').value = task.quantity || '';
+            document.getElementById('editStatus').value = task.status || '';
+            
+            document.getElementById('editModal').style.display = 'block';
+        }
+
+        // 處理編輯提交
+        function handleEditSubmit(e) {
+            e.preventDefault();
+            
+            if (editingRowIndex === null) return;
+            
+            const formData = new FormData(e.target);
+            const updatedTask = {
+                itemName: formData.get('name'),
+                familyGroup: formData.get('group'),
+                quantity: formData.get('quantity'),
+                status: formData.get('status')
+            };
+
+            editTask(editingRowIndex, updatedTask);
+        }
+
+        // 編輯任務
+        function editTask(rowIndex, taskData) {
+            const params = new URLSearchParams({
+                action: 'edit',
+                callback: 'handleEditResult',
+                rowIndex: rowIndex + 2,
+                ...taskData
+            });
+            
+            const script = document.createElement('script');
+            script.src = `${API_URL}?${params}`;
+            document.head.appendChild(script);
+        }
+
+        // 處理編輯結果
+        window.handleEditResult = function(data) {
+            if (data.success) {
+                closeEditModal();
+                loadTasks();
+                alert('編輯成功！');
+            } else {
+                console.error('編輯失敗:', data.message);
+                alert('編輯失敗: ' + data.message);
+            }
+        };
+
+        // 處理刪除點擊
+        function handleDeleteClick(rowIndex) {
+            if (rowIndex < 0 || rowIndex >= tasks.length) return;
+
+            const task = tasks[rowIndex];
+            if (confirm(`確定要刪除「${task.itemName}」嗎？`)) {
+                deleteTask(rowIndex);
+            }
+        }
+
+        // 刪除任務
+        function deleteTask(rowIndex) {
+            const params = new URLSearchParams({
+                action: 'delete',
+                callback: 'handleDeleteResult',
+                rowIndex: rowIndex + 2
+            });
+            
+            const script = document.createElement('script');
+            script.src = `${API_URL}?${params}`;
+            document.head.appendChild(script);
+        }
+
+        // 處理刪除結果
+        window.handleDeleteResult = function(data) {
+            if (data.success) {
+                loadTasks();
+                alert('刪除成功！');
+            } else {
+                console.error('刪除失敗:', data.message);
+                alert('刪除失敗: ' + data.message);
+            }
+        };
+
+        // 關閉編輯模態框
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+            editingRowIndex = null;
+            document.getElementById('editForm').reset();
+        }
+
+        // 點擊模態框外部關閉
+        window.onclick = function(event) {
+            const modal = document.getElementById('editModal');
+            if (event.target === modal) {
+                closeEditModal();
+            }
+        };
+    </script>
 </body>
 </html>
