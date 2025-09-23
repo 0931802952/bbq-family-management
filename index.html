@@ -209,11 +209,104 @@
             color: #155724;
         }
 
+        .status-badge:hover {
+            cursor: pointer;
+            opacity: 0.8;
+            transform: scale(1.05);
+            transition: all 0.2s ease;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85em;
+            font-weight: bold;
+            transition: all 0.2s ease;
+            min-width: 60px;
+        }
+
+        .edit-btn {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .edit-btn:hover {
+            background: #138496;
+            transform: translateY(-1px);
+        }
+
+        .delete-btn {
+            background: #dc3545;
+            color: white;
+        }
+
+        .delete-btn:hover {
+            background: #c82333;
+            transform: translateY(-1px);
+        }
+
         .text-center {
             text-align: center;
             color: #666;
             font-style: italic;
             padding: 40px;
+        }
+
+        /* 編輯模態框樣式 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .modal-header h3 {
+            color: #333;
+            margin: 0;
+        }
+
+        .close {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .close:hover {
+            color: #333;
         }
 
         @media (max-width: 768px) {
@@ -324,6 +417,7 @@
                                 <th>👨‍👩‍👧‍👦 家庭分組</th>
                                 <th>🔢 數量</th>
                                 <th>📊 狀態</th>
+                                <th>⚙️ 操作</th>
                             </tr>
                         </thead>
                         <tbody id="taskList">
@@ -333,6 +427,51 @@
                     </table>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- 編輯項目模態框 -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>✏️ 編輯項目</h3>
+                <span class="close" onclick="closeEditModal()">&times;</span>
+            </div>
+            <form id="editForm">
+                <div class="form-group">
+                    <label for="editName">🍖 項目名稱</label>
+                    <input type="text" id="editName" name="name" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="editGroup">👨‍👩‍👧‍👦 家庭分組</label>
+                    <select id="editGroup" name="group" required>
+                        <option value="">請選擇家庭分組</option>
+                        <option value="郭家">郭家</option>
+                        <option value="哥家">哥家</option>
+                        <option value="翁家">翁家</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="editQuantity">🔢 數量</label>
+                    <input type="text" id="editQuantity" name="quantity">
+                </div>
+                
+                <div class="form-group">
+                    <label for="editStatus">📊 狀態</label>
+                    <select id="editStatus" name="status">
+                        <option value="待處理">待處理</option>
+                        <option value="進行中">進行中</option>
+                        <option value="已完成">已完成</option>
+                    </select>
+                </div>
+                
+                <div style="display: flex; gap: 15px; margin-top: 25px;">
+                    <button type="submit" class="btn" style="flex: 1;">✅ 保存變更</button>
+                    <button type="button" class="btn" style="flex: 1; background: #6c757d;" onclick="closeEditModal()">❌ 取消</button>
+                </div>
+            </form>
         </div>
     </div>
 
