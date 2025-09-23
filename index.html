@@ -140,11 +140,13 @@
         .filter-group {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 15px;
+            flex-wrap: wrap;
         }
 
         .filter-group label {
             font-weight: bold;
+            white-space: nowrap;
         }
 
         .filter-group select {
@@ -153,6 +155,7 @@
             border-radius: 5px;
             background: white;
             color: #333;
+            min-width: 120px;
         }
 
         .table-container {
@@ -295,9 +298,20 @@
                 <div class="tasks-header">
                     <h2>📋 烤肉準備清單</h2>
                     <div class="filter-group">
+                        <label for="filterFamily">篩選家庭：</label>
+                        <select id="filterFamily">
+                            <option value="">全部家庭</option>
+                            <option value="郭家">郭家</option>
+                            <option value="哥家">哥家</option>
+                            <option value="翁家">翁家</option>
+                        </select>
+                        
                         <label for="filterStatus">篩選狀態：</label>
                         <select id="filterStatus">
-                            <!-- 篩選選項將由 JavaScript 填充 -->
+                            <option value="">全部狀態</option>
+                            <option value="待處理">待處理</option>
+                            <option value="進行中">進行中</option>
+                            <option value="已完成">已完成</option>
                         </select>
                     </div>
                 </div>
