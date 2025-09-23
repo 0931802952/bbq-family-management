@@ -84,22 +84,6 @@
             font-weight: 400;
         }
 
-        .debug-info {
-            background: rgba(255, 245, 245, 0.8);
-            border: 1px solid rgba(255, 180, 180, 0.3);
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 20px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9rem;
-            color: #8b4513;
-            display: none;
-        }
-
-        .debug-info.show {
-            display: block;
-        }
-
         .main-content {
             display: grid;
             grid-template-columns: 350px 1fr;
@@ -186,20 +170,6 @@
 
         .btn-add:active {
             transform: translateY(0);
-        }
-
-        .btn-debug {
-            width: 100%;
-            padding: 10px;
-            margin-top: 10px;
-            background: linear-gradient(135deg, #d4c5c7 0%, #c9b8ba 100%);
-            color: #8b7d7f;
-            border: none;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
         }
 
         .list-section {
@@ -384,19 +354,43 @@
             opacity: 0.5;
         }
 
-        .loading {
-            text-align: center;
-            padding: 40px 20px;
-            color: #a69ca0;
+        .connection-test {
+            background: rgba(245, 240, 235, 0.8);
+            border: 1px solid rgba(215, 204, 200, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
         }
 
-        .error-state {
-            text-align: center;
-            padding: 40px 20px;
-            color: #d0b8b8;
-            background: rgba(255, 245, 245, 0.5);
-            border-radius: 12px;
-            border: 1px solid rgba(255, 180, 180, 0.2);
+        .test-button {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #c7d0c4 0%, #bcc7b9 100%);
+            color: #7a8677;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        .test-result {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        .test-success {
+            background: rgba(200, 230, 200, 0.3);
+            border: 1px solid rgba(150, 200, 150, 0.5);
+            color: #2d5a2d;
+        }
+
+        .test-error {
+            background: rgba(255, 200, 200, 0.3);
+            border: 1px solid rgba(255, 150, 150, 0.5);
+            color: #8b4513;
         }
 
         @media (max-width: 768px) {
@@ -428,14 +422,18 @@
             <div class="event-address">地址：新北市林口區仁愛路一段667巷23號</div>
         </div>
 
-        <div id="debugInfo" class="debug-info">
-            <strong>調試信息：</strong><br>
-            <div id="debugContent"></div>
-        </div>
-
         <div class="main-content">
             <div class="add-section">
                 <h2>新增準備事項</h2>
+                
+                <!-- 連接測試區 -->
+                <div class="connection-test">
+                    <h3 style="color: #8b8386; margin-bottom: 15px; font-size: 1.1rem;">連接測試</h3>
+                    <button class="test-button" onclick="testConnection()">測試 API 連接</button>
+                    <button class="test-button" onclick="testDirectCall()">直接調用測試</button>
+                    <div id="testResult"></div>
+                </div>
+                
                 <form id="taskForm">
                     <div class="form-group">
                         <label for="itemName">事項名稱</label>
@@ -469,7 +467,6 @@
                     </div>
                     
                     <button type="submit" class="btn-add">新增事項</button>
-                    <button type="button" class="btn-debug" onclick="toggleDebug()">顯示調試信息</button>
                 </form>
             </div>
 
@@ -494,9 +491,9 @@
                 </div>
                 
                 <div id="taskList">
-                    <div class="loading">
-                        <div style="font-size: 2rem; margin-bottom: 15px;">⏳</div>
-                        <p>正在載入數據...</p>
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🔥</div>
+                        <p>還沒有準備事項，趕快新增吧！</p>
                     </div>
                 </div>
             </div>
@@ -548,37 +545,85 @@
         const API_URL = 'https://script.google.com/macros/s/AKfycbxRK7Q2jL7bGDigcuL6XHthkH1PJPtEEaWarfl-DDTw9CBU7FI80Rl80mVJSLpmV7ac/exec';
         let tasks = [];
         let editingRowIndex = null;
-        let debugMode = false;
 
-        // Debug functions
-        function log(message, data = null) {
-            const timestamp = new Date().toLocaleTimeString();
-            const logMessage = `[${timestamp}] ${message}`;
-            console.log(logMessage, data || '');
+        // Test functions
+        function testConnection() {
+            const resultDiv = document.getElementById('testResult');
+            resultDiv.innerHTML = '<div style="color: #a69ca0;">測試中...</div>';
             
-            if (debugMode) {
-                const debugContent = document.getElementById('debugContent');
-                const logEntry = document.createElement('div');
-                logEntry.innerHTML = `${logMessage}${data ? ' ' + JSON.stringify(data, null, 2) : ''}`;
-                debugContent.appendChild(logEntry);
-                debugContent.scrollTop = debugContent.scrollHeight;
+            // Test simple fetch request
+            fetch(API_URL + '?action=read', {
+                method: 'GET',
+                mode: 'no-cors'
+            })
+            .then(() => {
+                resultDiv.innerHTML = '<div class="test-success">✅ API連接測試成功：服務器可達</div>';
+                // Now try JSONP
+                testJSONP();
+            })
+            .catch(error => {
+                resultDiv.innerHTML = `<div class="test-error">❌ API連接失敗：${error.message}</div>`;
+            });
+        }
+
+        function testJSONP() {
+            const resultDiv = document.getElementById('testResult');
+            
+            try {
+                const callbackName = 'testCallback_' + Date.now();
+                const script = document.createElement('script');
+                const url = `${API_URL}?action=read&callback=${callbackName}`;
+                
+                // Set timeout
+                const timeout = setTimeout(() => {
+                    resultDiv.innerHTML += '<div class="test-error">❌ JSONP超時：10秒內無響應</div>';
+                    document.head.removeChild(script);
+                    delete window[callbackName];
+                }, 10000);
+                
+                window[callbackName] = function(data) {
+                    clearTimeout(timeout);
+                    document.head.removeChild(script);
+                    delete window[callbackName];
+                    
+                    resultDiv.innerHTML += `<div class="test-success">✅ JSONP測試成功：${JSON.stringify(data, null, 2)}</div>`;
+                };
+                
+                script.onerror = function() {
+                    clearTimeout(timeout);
+                    resultDiv.innerHTML += '<div class="test-error">❌ JSONP腳本載入失敗</div>';
+                    document.head.removeChild(script);
+                    delete window[callbackName];
+                };
+                
+                script.src = url;
+                document.head.appendChild(script);
+                
+            } catch (error) {
+                resultDiv.innerHTML += `<div class="test-error">❌ JSONP測試異常：${error.message}</div>`;
             }
         }
 
-        function toggleDebug() {
-            debugMode = !debugMode;
-            const debugInfo = document.getElementById('debugInfo');
-            const btn = event.target;
+        function testDirectCall() {
+            const resultDiv = document.getElementById('testResult');
+            resultDiv.innerHTML = '<div style="color: #a69ca0;">正在測試直接調用...</div>';
             
-            if (debugMode) {
-                debugInfo.classList.add('show');
-                btn.textContent = '隱藏調試信息';
-                log('調試模式已開啟');
-            } else {
-                debugInfo.classList.remove('show');
-                btn.textContent = '顯示調試信息';
-                document.getElementById('debugContent').innerHTML = '';
-            }
+            // Try different approaches
+            const iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            iframe.src = API_URL + '?action=read';
+            
+            iframe.onload = function() {
+                resultDiv.innerHTML = '<div class="test-success">✅ IFrame載入成功：服務器響應正常</div>';
+                document.body.removeChild(iframe);
+            };
+            
+            iframe.onerror = function() {
+                resultDiv.innerHTML = '<div class="test-error">❌ IFrame載入失敗：服務器無響應</div>';
+                document.body.removeChild(iframe);
+            };
+            
+            document.body.appendChild(iframe);
         }
 
         // DOM Elements
@@ -592,16 +637,12 @@
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
-            log('頁面載入完成，開始初始化');
+            console.log('頁面載入完成');
             
-            // Add timeout for loading
+            // Auto test connection on load
             setTimeout(() => {
-                if (tasks.length === 0) {
-                    showError('載入超時，請檢查網絡連接或重新整理頁面');
-                }
-            }, 10000);
-            
-            loadTasks();
+                testConnection();
+            }, 2000);
             
             taskForm.addEventListener('submit', handleAddTask);
             editForm.addEventListener('submit', handleEditSubmit);
@@ -616,121 +657,123 @@
             });
         });
 
-        // Load tasks from Google Apps Script
-        function loadTasks() {
-            log('開始載入任務數據');
-            
-            try {
-                const callbackName = 'handleTasksLoaded_' + Date.now();
-                const script = document.createElement('script');
-                const url = `${API_URL}?action=read&callback=${callbackName}`;
-                
-                log('發送JSONP請求', { url: url });
-                
-                // Create global callback function
-                window[callbackName] = function(data) {
-                    log('收到回調數據', data);
-                    
-                    // Clean up
-                    document.head.removeChild(script);
-                    delete window[callbackName];
-                    
-                    handleTasksLoaded(data);
-                };
-                
-                // Set up error handling
-                script.onerror = function() {
-                    log('腳本載入錯誤');
-                    showError('無法連接到服務器，請檢查網絡連接');
-                    document.head.removeChild(script);
-                    delete window[callbackName];
-                };
-                
-                script.src = url;
-                document.head.appendChild(script);
-                
-            } catch (error) {
-                log('載入任務時發生錯誤', error);
-                showError('載入數據時發生錯誤: ' + error.message);
-            }
-        }
-
-        // Handle loaded tasks
-        function handleTasksLoaded(data) {
-            log('處理載入的任務數據', data);
-            
-            if (!data) {
-                log('收到空數據');
-                showError('服務器返回空數據，請稍後再試');
-                return;
-            }
-            
-            if (data.success) {
-                tasks = data.data || [];
-                log('任務載入成功', { count: tasks.length });
-                renderTasks();
-            } else {
-                const errorMsg = data.message || '未知錯誤';
-                log('載入失敗', { message: errorMsg });
-                showError('載入資料失敗: ' + errorMsg);
-            }
-        }
-
-        // Show error message
-        function showError(message) {
-            taskList.innerHTML = `
-                <div class="error-state">
-                    <div style="font-size: 2rem; margin-bottom: 15px;">⚠️</div>
-                    <p><strong>載入失敗</strong></p>
-                    <p>${message}</p>
-                    <button style="margin-top: 15px; padding: 8px 16px; background: #c7a9a9; color: white; border: none; border-radius: 8px; cursor: pointer;" onclick="loadTasks()">重新載入</button>
-                </div>
-            `;
-        }
-
-        // Handle add task form submission
+        // Simple add task function (local storage fallback)
         function handleAddTask(e) {
             e.preventDefault();
-            log('提交新增任務表單');
             
             const formData = new FormData(taskForm);
             const taskData = {
+                id: Date.now(),
                 itemName: formData.get('itemName'),
                 category: formData.get('category'),
                 quantity: formData.get('quantity'),
                 responsible: formData.get('responsible'),
                 notes: formData.get('notes') || '',
-                status: '待處理'
+                status: '待處理',
+                createdAt: new Date().toLocaleString()
             };
 
-            log('新增任務數據', taskData);
-            addTask(taskData);
+            // Try to add via API first, fallback to localStorage
+            addTaskToAPI(taskData).catch(() => {
+                addTaskToLocalStorage(taskData);
+            });
         }
 
-        // Add task via JSONP
-        function addTask(taskData) {
+        function addTaskToAPI(taskData) {
+            return new Promise((resolve, reject) => {
+                try {
+                    const callbackName = 'addCallback_' + Date.now();
+                    const params = new URLSearchParams({
+                        action: 'add',
+                        callback: callbackName,
+                        ...taskData
+                    });
+                    
+                    const script = document.createElement('script');
+                    const url = `${API_URL}?${params}`;
+                    
+                    const timeout = setTimeout(() => {
+                        reject(new Error('API timeout'));
+                        document.head.removeChild(script);
+                        delete window[callbackName];
+                    }, 5000);
+                    
+                    window[callbackName] = function(data) {
+                        clearTimeout(timeout);
+                        document.head.removeChild(script);
+                        delete window[callbackName];
+                        
+                        if (data && data.success) {
+                            taskForm.reset();
+                            loadTasksFromAPI();
+                            alert('新增成功！');
+                            resolve(data);
+                        } else {
+                            reject(new Error(data ? data.message : '未知錯誤'));
+                        }
+                    };
+                    
+                    script.onerror = function() {
+                        clearTimeout(timeout);
+                        reject(new Error('Script load error'));
+                        document.head.removeChild(script);
+                        delete window[callbackName];
+                    };
+                    
+                    script.src = url;
+                    document.head.appendChild(script);
+                    
+                } catch (error) {
+                    reject(error);
+                }
+            });
+        }
+
+        function addTaskToLocalStorage(taskData) {
             try {
-                const callbackName = 'handleAddResult_' + Date.now();
-                const params = new URLSearchParams({
-                    action: 'add',
-                    callback: callbackName,
-                    ...taskData
-                });
+                const storedTasks = JSON.parse(localStorage.getItem('bbqTasks') || '[]');
+                storedTasks.push(taskData);
+                localStorage.setItem('bbqTasks', JSON.stringify(storedTasks));
                 
-                const url = `${API_URL}?${params}`;
-                log('發送新增請求', { url: url });
+                taskForm.reset();
+                loadTasksFromLocalStorage();
+                alert('新增成功！（已保存到本地）');
+            } catch (error) {
+                alert('新增失敗: ' + error.message);
+            }
+        }
+
+        function loadTasksFromAPI() {
+            try {
+                const callbackName = 'loadCallback_' + Date.now();
+                const script = document.createElement('script');
+                const url = `${API_URL}?action=read&callback=${callbackName}`;
                 
-                window[callbackName] = function(data) {
-                    log('收到新增結果', data);
+                const timeout = setTimeout(() => {
+                    console.log('API載入超時，切換到本地存儲');
+                    loadTasksFromLocalStorage();
                     document.head.removeChild(script);
                     delete window[callbackName];
-                    handleAddResult(data);
+                }, 5000);
+                
+                window[callbackName] = function(data) {
+                    clearTimeout(timeout);
+                    document.head.removeChild(script);
+                    delete window[callbackName];
+                    
+                    if (data && data.success) {
+                        tasks = data.data || [];
+                        renderTasks();
+                    } else {
+                        console.log('API載入失敗，切換到本地存儲');
+                        loadTasksFromLocalStorage();
+                    }
                 };
                 
-                const script = document.createElement('script');
                 script.onerror = function() {
-                    log('新增請求腳本錯誤');
-                    alert('新增失敗：網絡錯誤');
+                    clearTimeout(timeout);
+                    console.log('API腳本錯誤，切換到本地存儲');
+                    loadTasksFromLocalStorage();
                     document.head.removeChild(script);
                     delete window[callbackName];
                 };
@@ -739,28 +782,54 @@
                 document.head.appendChild(script);
                 
             } catch (error) {
-                log('新增任務時發生錯誤', error);
-                alert('新增失敗: ' + error.message);
+                console.log('載入API時發生錯誤，切換到本地存儲:', error);
+                loadTasksFromLocalStorage();
             }
         }
 
-        // Callback for add task result
-        function handleAddResult(data) {
-            if (data && data.success) {
-                taskForm.reset();
-                loadTasks(); // Reload tasks
-                alert('新增成功！');
-            } else {
-                const errorMsg = data ? data.message : '未知錯誤';
-                log('新增失敗', { message: errorMsg });
-                alert('新增失敗: ' + errorMsg);
+        function loadTasksFromLocalStorage() {
+            try {
+                tasks = JSON.parse(localStorage.getItem('bbqTasks') || '[]');
+                renderTasks();
+                
+                if (tasks.length === 0) {
+                    // Add some sample data
+                    const sampleTasks = [
+                        {
+                            id: 1,
+                            itemName: '牛肉片',
+                            category: '食材',
+                            quantity: '2公斤',
+                            responsible: '爸爸',
+                            notes: '選擇優質牛肉',
+                            status: '待處理',
+                            createdAt: new Date().toLocaleString()
+                        },
+                        {
+                            id: 2,
+                            itemName: '烤肉架',
+                            category: '器具',
+                            quantity: '1個',
+                            responsible: '媽媽',
+                            notes: '大尺寸',
+                            status: '進行中',
+                            createdAt: new Date().toLocaleString()
+                        }
+                    ];
+                    
+                    tasks = sampleTasks;
+                    localStorage.setItem('bbqTasks', JSON.stringify(tasks));
+                    renderTasks();
+                }
+            } catch (error) {
+                console.error('載入本地存儲失敗:', error);
+                tasks = [];
+                renderTasks();
             }
         }
 
-        // Render tasks table
+        // Render tasks
         function renderTasks() {
-            log('渲染任務列表', { taskCount: tasks.length });
-            
             const statusFilterValue = statusFilter.value;
             const categoryFilterValue = categoryFilter.value;
             
@@ -799,11 +868,7 @@
                     </thead>
                     <tbody>
                         ${filteredTasks.map((task, index) => {
-                            const originalIndex = tasks.findIndex(t => 
-                                t.itemName === task.itemName && 
-                                t.category === task.category && 
-                                t.responsible === task.responsible
-                            );
+                            const originalIndex = tasks.findIndex(t => t.id === task.id);
                             return `
                                 <tr>
                                     <td>${task.itemName || ''}</td>
@@ -833,7 +898,6 @@
             taskList.innerHTML = tableHTML;
         }
 
-        // Get status CSS class
         function getStatusClass(status) {
             switch(status) {
                 case '待處理': return 'status-pending';
@@ -843,95 +907,29 @@
             }
         }
 
-        // Change task status
-        function changeStatus(rowIndex) {
-            log('更改狀態', { rowIndex: rowIndex });
+        function changeStatus(index) {
+            if (index < 0 || index >= tasks.length) return;
             
-            if (rowIndex < 0 || rowIndex >= tasks.length) {
-                log('無效的行索引', { rowIndex: rowIndex, tasksLength: tasks.length });
-                return;
-            }
-
-            const currentStatus = tasks[rowIndex].status;
+            const currentStatus = tasks[index].status;
             let newStatus;
             
             switch(currentStatus) {
-                case '待處理':
-                    newStatus = '進行中';
-                    break;
-                case '進行中':
-                    newStatus = '已完成';
-                    break;
-                case '已完成':
-                    newStatus = '待處理';
-                    break;
-                default:
-                    newStatus = '進行中';
+                case '待處理': newStatus = '進行中'; break;
+                case '進行中': newStatus = '已完成'; break;
+                case '已完成': newStatus = '待處理'; break;
+                default: newStatus = '進行中';
             }
-
-            updateStatus(rowIndex, newStatus);
-        }
-
-        // Update status via JSONP
-        function updateStatus(rowIndex, newStatus) {
-            try {
-                const callbackName = 'handleUpdateStatusResult_' + Date.now();
-                const params = new URLSearchParams({
-                    action: 'updateStatus',
-                    callback: callbackName,
-                    rowIndex: rowIndex + 2,
-                    status: newStatus
-                });
-                
-                const url = `${API_URL}?${params}`;
-                log('發送狀態更新請求', { url: url, rowIndex: rowIndex, newStatus: newStatus });
-                
-                window[callbackName] = function(data) {
-                    log('收到狀態更新結果', data);
-                    document.head.removeChild(script);
-                    delete window[callbackName];
-                    handleUpdateStatusResult(data);
-                };
-                
-                const script = document.createElement('script');
-                script.onerror = function() {
-                    log('狀態更新腳本錯誤');
-                    alert('更新狀態失敗：網絡錯誤');
-                    document.head.removeChild(script);
-                    delete window[callbackName];
-                };
-                
-                script.src = url;
-                document.head.appendChild(script);
-                
-            } catch (error) {
-                log('更新狀態時發生錯誤', error);
-                alert('更新狀態失敗: ' + error.message);
-            }
-        }
-
-        // Callback for update status result
-        function handleUpdateStatusResult(data) {
-            if (data && data.success) {
-                loadTasks(); // Reload tasks
-            } else {
-                const errorMsg = data ? data.message : '未知錯誤';
-                log('更新狀態失敗', { message: errorMsg });
-                alert('更新狀態失敗: ' + errorMsg);
-            }
-        }
-
-        // Handle edit button click
-        function handleEditClick(rowIndex) {
-            log('點擊編輯按鈕', { rowIndex: rowIndex });
             
-            if (rowIndex < 0 || rowIndex >= tasks.length) {
-                log('無效的編輯行索引', { rowIndex: rowIndex, tasksLength: tasks.length });
-                return;
-            }
+            tasks[index].status = newStatus;
+            localStorage.setItem('bbqTasks', JSON.stringify(tasks));
+            renderTasks();
+        }
 
-            editingRowIndex = rowIndex;
-            const task = tasks[rowIndex];
+        function handleEditClick(index) {
+            if (index < 0 || index >= tasks.length) return;
+            
+            editingRowIndex = index;
+            const task = tasks[index];
             
             document.getElementById('editItemName').value = task.itemName || '';
             document.getElementById('editCategory').value = task.category || '';
@@ -942,146 +940,50 @@
             editModal.style.display = 'block';
         }
 
-        // Handle edit form submission
         function handleEditSubmit(e) {
             e.preventDefault();
-            log('提交編輯表單', { editingRowIndex: editingRowIndex });
             
             if (editingRowIndex === null) return;
             
             const formData = new FormData(editForm);
-            const updatedTask = {
+            
+            tasks[editingRowIndex] = {
+                ...tasks[editingRowIndex],
                 itemName: formData.get('itemName'),
                 category: formData.get('category'),
                 quantity: formData.get('quantity'),
                 responsible: formData.get('responsible'),
                 notes: formData.get('notes') || ''
             };
-
-            editTask(editingRowIndex, updatedTask);
-        }
-
-        // Edit task via JSONP
-        function editTask(rowIndex, taskData) {
-            try {
-                const callbackName = 'handleEditResult_' + Date.now();
-                const params = new URLSearchParams({
-                    action: 'edit',
-                    callback: callbackName,
-                    rowIndex: rowIndex + 2,
-                    ...taskData
-                });
-                
-                const url = `${API_URL}?${params}`;
-                log('發送編輯請求', { url: url, rowIndex: rowIndex, taskData: taskData });
-                
-                window[callbackName] = function(data) {
-                    log('收到編輯結果', data);
-                    document.head.removeChild(script);
-                    delete window[callbackName];
-                    handleEditResult(data);
-                };
-                
-                const script = document.createElement('script');
-                script.onerror = function() {
-                    log('編輯請求腳本錯誤');
-                    alert('編輯失敗：網絡錯誤');
-                    document.head.removeChild(script);
-                    delete window[callbackName];
-                };
-                
-                script.src = url;
-                document.head.appendChild(script);
-                
-            } catch (error) {
-                log('編輯任務時發生錯誤', error);
-                alert('編輯失敗: ' + error.message);
-            }
-        }
-
-        // Callback for edit task result
-        function handleEditResult(data) {
-            if (data && data.success) {
-                closeEditModal();
-                loadTasks(); // Reload tasks
-                alert('編輯成功！');
-            } else {
-                const errorMsg = data ? data.message : '未知錯誤';
-                log('編輯失敗', { message: errorMsg });
-                alert('編輯失敗: ' + errorMsg);
-            }
-        }
-
-        // Handle delete button click
-        function handleDeleteClick(rowIndex) {
-            log('點擊刪除按鈕', { rowIndex: rowIndex });
             
-            if (rowIndex < 0 || rowIndex >= tasks.length) {
-                log('無效的刪除行索引', { rowIndex: rowIndex, tasksLength: tasks.length });
-                return;
-            }
+            localStorage.setItem('bbqTasks', JSON.stringify(tasks));
+            closeEditModal();
+            renderTasks();
+            alert('編輯成功！');
+        }
 
-            const task = tasks[rowIndex];
+        function handleDeleteClick(index) {
+            if (index < 0 || index >= tasks.length) return;
+            
+            const task = tasks[index];
             if (confirm(`確定要刪除「${task.itemName}」嗎？`)) {
-                deleteTask(rowIndex);
-            }
-        }
-
-        // Delete task via JSONP
-        function deleteTask(rowIndex) {
-            try {
-                const callbackName = 'handleDeleteResult_' + Date.now();
-                const params = new URLSearchParams({
-                    action: 'delete',
-                    callback: callbackName,
-                    rowIndex: rowIndex + 2
-                });
-                
-                const url = `${API_URL}?${params}`;
-                log('發送刪除請求', { url: url, rowIndex: rowIndex });
-                
-                window[callbackName] = function(data) {
-                    log('收到刪除結果', data);
-                    document.head.removeChild(script);
-                    delete window[callbackName];
-                    handleDeleteResult(data);
-                };
-                
-                const script = document.createElement('script');
-                script.onerror = function() {
-                    log('刪除請求腳本錯誤');
-                    alert('刪除失敗：網絡錯誤');
-                    document.head.removeChild(script);
-                    delete window[callbackName];
-                };
-                
-                script.src = url;
-                document.head.appendChild(script);
-                
-            } catch (error) {
-                log('刪除任務時發生錯誤', error);
-                alert('刪除失敗: ' + error.message);
-            }
-        }
-
-        // Callback for delete task result
-        function handleDeleteResult(data) {
-            if (data && data.success) {
-                loadTasks(); // Reload tasks
+                tasks.splice(index, 1);
+                localStorage.setItem('bbqTasks', JSON.stringify(tasks));
+                renderTasks();
                 alert('刪除成功！');
-            } else {
-                const errorMsg = data ? data.message : '未知錯誤';
-                log('刪除失敗', { message: errorMsg });
-                alert('刪除失敗: ' + errorMsg);
             }
         }
 
-        // Close edit modal
         function closeEditModal() {
             editModal.style.display = 'none';
             editingRowIndex = null;
             editForm.reset();
         }
+
+        // Initialize on load
+        setTimeout(() => {
+            loadTasksFromLocalStorage();
+        }, 1000);
     </script>
 </body>
 </html>
