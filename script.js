@@ -1,481 +1,682 @@
-<!DOCTYPE html>
-<html lang="zh-TW">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🔥 烤肉準備項目工作區</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+// 烤肉準備項目工作區 - 調試修復版
+const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxRK7Q2jL7bGDigcuL6XHthkH1PJPtEEaWarfl-DDTw9CBU7FI80Rl80mVJSLpmV7ac/exec';
 
-        body {
-            font-family: 'Arial', 'Microsoft JhengHei', sans-serif;
-            background: linear-gradient(135deg, #d4c8c1 0%, #a89d96 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
+// 家庭分組和狀態選項
+const FAMILY_GROUPS = ['郭家', '哥家', '翁家'];
+const STATUS_OPTIONS = ['待處理', '進行中', '已完成'];
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: #f5f3f1;
-            border-radius: 15px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            overflow: hidden;
-        }
+// 全局變量
+let currentEditingRowIndex = null;
+let currentEditingTask = null;
+let allTasks = [];
 
-        .header {
-            background: linear-gradient(135deg, #c4a88a, #a89480);
-            color: white;
-            padding: 30px;
-            text-align: center;
-        }
+// 當頁面載入完成時初始化
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🔥 烤肉準備項目工作區啟動 - 調試修復版');
+    
+    // 初始化表單選擇器
+    initializeSelectors();
+    
+    // 綁定事件
+    bindEvents();
+    
+    // 載入現有項目
+    loadTasks();
+    
+    // 添加篩選重置功能
+    addFilterResetButton();
+    
+    console.log('✅ 初始化完成');
+});
 
-        .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        }
+// 添加篩選重置按鈕
+function addFilterResetButton() {
+    const filterGroup = document.querySelector('.filter-group');
+    if (filterGroup) {
+        const resetButton = document.createElement('button');
+        resetButton.textContent = '重置篩選';
+        resetButton.type = 'button';
+        resetButton.style.cssText = 'padding: 8px 15px; background: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer; margin-left: 10px;';
+        
+        resetButton.addEventListener('click', function() {
+            document.getElementById('filterFamily').value = '';
+            document.getElementById('filterStatus').value = '';
+            applyFilters();
+            console.log('篩選已重置');
+        });
+        
+        filterGroup.appendChild(resetButton);
+        console.log('✅ 重置按鈕已添加');
+    }
+}
 
-        .header p {
-            font-size: 1.2em;
-            opacity: 0.9;
-        }
+// 初始化選擇器
+function initializeSelectors() {
+    // 家庭分組選擇器
+    const familyGroupSelect = document.getElementById('familyGroup');
+    if (familyGroupSelect) {
+        familyGroupSelect.innerHTML = '<option value="">請選擇家庭分組</option>';
+        FAMILY_GROUPS.forEach(function(group) {
+            const option = document.createElement('option');
+            option.value = group;
+            option.textContent = group;
+            familyGroupSelect.appendChild(option);
+        });
+    }
+    
+    // 狀態選擇器
+    const statusSelect = document.getElementById('taskStatus');
+    if (statusSelect) {
+        statusSelect.innerHTML = '';
+        STATUS_OPTIONS.forEach(function(status) {
+            const option = document.createElement('option');
+            option.value = status;
+            option.textContent = status;
+            statusSelect.appendChild(option);
+        });
+    }
+}
 
-        .main-content {
-            padding: 30px;
+// 綁定事件
+function bindEvents() {
+    // 表單提交事件
+    const taskForm = document.getElementById('taskForm');
+    if (taskForm) {
+        taskForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+            handleFormSubmit(event);
+        });
+        console.log('✅ 表單提交事件已綁定');
+    }
+    
+    // 編輯表單提交事件
+    const editForm = document.getElementById('editForm');
+    if (editForm) {
+        editForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+            handleEditSubmit(event);
+        });
+        console.log('✅ 編輯表單事件已綁定');
+    }
+    
+    // 篩選事件 - 家庭分組
+    const filterFamily = document.getElementById('filterFamily');
+    if (filterFamily) {
+        filterFamily.addEventListener('change', function() {
+            console.log('家庭分組篩選器變動:', this.value);
+            applyFilters();
+        });
+        console.log('✅ 家庭分組篩選器事件已綁定');
+    }
+    
+    // 篩選事件 - 狀態
+    const filterStatus = document.getElementById('filterStatus');
+    if (filterStatus) {
+        filterStatus.addEventListener('change', function() {
+            console.log('狀態篩選器變動:', this.value);
+            applyFilters();
+        });
+        console.log('✅ 狀態篩選器事件已綁定');
+    }
+    
+    // 模態框外部點擊關閉
+    window.addEventListener('click', function(event) {
+        const modal = document.getElementById('editModal');
+        if (event.target === modal) {
+            closeEditModal();
         }
+    });
+}
 
-        .form-section {
-            background: #f0ede9;
-            padding: 25px;
-            border-radius: 10px;
-            margin-bottom: 30px;
-            border-left: 5px solid #c4a88a;
+// 處理表單提交
+function handleFormSubmit(event) {
+    const formData = new FormData(event.target);
+    const taskData = {
+        name: formData.get('itemName') || '',
+        group: formData.get('familyGroup') || '',
+        quantity: formData.get('quantity') || '1',
+        status: formData.get('status') || '待處理'
+    };
+    
+    // 驗證必填欄位
+    if (!taskData.name.trim()) {
+        showMessage('請輸入項目名稱', 'error');
+        return;
+    }
+    
+    if (!taskData.group.trim()) {
+        showMessage('請選擇家庭分組', 'error');
+        return;
+    }
+    
+    console.log('準備新增項目:', taskData);
+    addTask(taskData);
+}
+
+// 新增項目
+function addTask(taskData) {
+    const callbackName = 'add_callback_' + Date.now();
+    
+    // 建立請求參數
+    const params = new URLSearchParams({
+        action: 'add',
+        name: taskData.name,
+        group: taskData.group,
+        quantity: taskData.quantity,
+        status: taskData.status,
+        callback: callbackName
+    });
+    
+    const url = GOOGLE_APPS_SCRIPT_URL + '?' + params.toString();
+    console.log('新增項目 URL:', url);
+    
+    // 定義回調函數
+    window[callbackName] = function(response) {
+        console.log('新增項目回應:', response);
+        
+        if (response && response.success) {
+            showMessage('項目新增成功！', 'success');
+            loadTasks(); // 重新載入項目列表
+            document.getElementById('taskForm').reset(); // 清空表單
+        } else {
+            const errorMsg = response && response.error ? response.error : '新增失敗';
+            showMessage('新增失敗: ' + errorMsg, 'error');
         }
-
-        .form-section h2 {
-            color: #6b5d56;
-            margin-bottom: 20px;
-            font-size: 1.5em;
+        
+        // 清理
+        delete window[callbackName];
+        if (script && script.parentNode) {
+            script.parentNode.removeChild(script);
         }
-
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 20px;
+    };
+    
+    // 建立並執行 JSONP 請求
+    const script = document.createElement('script');
+    script.src = url;
+    script.onerror = function() {
+        console.error('JSONP 請求失敗');
+        showMessage('網路請求失敗，請檢查連線', 'error');
+        delete window[callbackName];
+        if (script.parentNode) {
+            script.parentNode.removeChild(script);
         }
+    };
+    
+    document.head.appendChild(script);
+}
 
-        .form-group {
-            display: flex;
-            flex-direction: column;
+// 載入所有項目
+function loadTasks() {
+    const callbackName = 'callback_' + Date.now();
+    
+    window[callbackName] = function(data) {
+        console.log('🔍 原始數據:', data);
+        
+        const taskList = document.getElementById('taskList');
+        if (!taskList) return;
+        
+        // 清空現有內容
+        taskList.innerHTML = '';
+        
+        if (!data || !Array.isArray(data) || data.length === 0) {
+            taskList.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #666; padding: 20px;">暫無項目</td></tr>';
+            allTasks = [];
+            delete window[callbackName];
+            return;
         }
-
-        .form-group label {
-            font-weight: bold;
-            margin-bottom: 8px;
-            color: #6b5d56;
-        }
-
-        .form-group input,
-        .form-group select {
-            padding: 12px;
-            border: 2px solid #d4c8c1;
-            border-radius: 8px;
-            font-size: 16px;
-            transition: border-color 0.3s ease;
-            background-color: #faf9f8;
-        }
-
-        .form-group input:focus,
-        .form-group select:focus {
-            outline: none;
-            border-color: #c4a88a;
-            box-shadow: 0 0 0 3px rgba(196, 168, 138, 0.1);
-        }
-
-        .btn {
-            background: linear-gradient(135deg, #c4a88a, #a89480);
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(196, 168, 138, 0.4);
-        }
-
-        .tasks-section {
-            background: #f5f3f1;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-
-        .tasks-header {
-            background: #b5a699;
-            color: white;
-            padding: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-
-        .tasks-header h2 {
-            margin: 0;
-            font-size: 1.5em;
-        }
-
-        .filter-group {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-
-        .filter-group label {
-            font-weight: bold;
-            white-space: nowrap;
-        }
-
-        .filter-group select {
-            padding: 8px 12px;
-            border: none;
-            border-radius: 5px;
-            background: #f5f3f1;
-            color: #6b5d56;
-            min-width: 120px;
-        }
-
-        .table-container {
-            overflow-x: auto;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th, td {
-            padding: 15px;
-            text-align: left;
-            border-bottom: 1px solid #e8e4e0;
-        }
-
-        th {
-            background: #f0ede9;
-            font-weight: bold;
-            color: #6b5d56;
-            text-transform: uppercase;
-            font-size: 0.9em;
-            letter-spacing: 1px;
-        }
-
-        tr:hover {
-            background-color: #f0ede9;
-        }
-
-        .status-badge {
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 0.9em;
-            font-weight: bold;
-            display: inline-block;
-        }
-
-        .status-pending {
-            background: #e8ddd6;
-            color: #8b7355;
-        }
-
-        .status-in-progress {
-            background: #d4c8c1;
-            color: #6b5d56;
-        }
-
-        .status-completed {
-            background: #c4b5aa;
-            color: #544842;
-        }
-
-        .status-badge:hover {
-            cursor: pointer;
-            opacity: 0.8;
-            transform: scale(1.05);
-            transition: all 0.2s ease;
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 8px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        .action-btn {
-            padding: 6px 12px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.85em;
-            font-weight: bold;
-            transition: all 0.2s ease;
-            min-width: 60px;
-        }
-
-        .edit-btn {
-            background: #9a8e82;
-            color: white;
-        }
-
-        .edit-btn:hover {
-            background: #867b6f;
-            transform: translateY(-1px);
-        }
-
-        .delete-btn {
-            background: #a89480;
-            color: white;
-        }
-
-        .delete-btn:hover {
-            background: #96826e;
-            transform: translateY(-1px);
-        }
-
-        .text-center {
-            text-align: center;
-            color: #8b7355;
-            font-style: italic;
-            padding: 40px;
-        }
-
-        /* 編輯模態框樣式 */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-        }
-
-        .modal-content {
-            background-color: #f5f3f1;
-            margin: 10% auto;
-            padding: 30px;
-            border-radius: 10px;
-            width: 90%;
-            max-width: 500px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid #e8e4e0;
-        }
-
-        .modal-header h3 {
-            color: #6b5d56;
-            margin: 0;
-        }
-
-        .close {
-            color: #a89d96;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-            line-height: 1;
-        }
-
-        .close:hover {
-            color: #6b5d56;
-        }
-
-        @media (max-width: 768px) {
-            .header h1 {
-                font-size: 2em;
-            }
+        
+        // 儲存原始數據供篩選使用，同時生成行索引
+        allTasks = data.map(function(task, index) {
+            // 如果後端沒有提供 rowIndex，我們用數組索引+2（因為第1行是標題行）
+            const actualRowIndex = task.rowIndex || (index + 2);
+            return {
+                ...task,
+                rowIndex: actualRowIndex,
+                arrayIndex: index // 保存數組索引用於前端操作
+            };
+        });
+        
+        console.log('💾 處理後的數據:', allTasks);
+        
+        allTasks.forEach(function(task, index) {
+            if (!task) return;
             
-            .main-content {
-                padding: 20px;
-            }
-            
-            .form-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .tasks-header {
-                flex-direction: column;
-                align-items: stretch;
-            }
+            const row = document.createElement('tr');
+            // 使用數組索引而不是rowIndex來避免混亂
+            row.innerHTML = 
+                '<td>' + (task.name || '') + '</td>' +
+                '<td>' + (task.group || '') + '</td>' +
+                '<td>' + (task.quantity || '1') + '</td>' +
+                '<td><span class="status-badge status-' + getStatusClass(task.status) + '" onclick="toggleStatus(' + index + ', \'' + (task.status || '待處理') + '\')">' + (task.status || '待處理') + '</span></td>' +
+                '<td class="action-buttons">' +
+                    '<button class="action-btn edit-btn" onclick="openEditModal(' + index + ')">✏️ 編輯</button>' +
+                    '<button class="action-btn delete-btn" onclick="deleteTask(' + index + ')">🗑️ 刪除</button>' +
+                '</td>';
+            taskList.appendChild(row);
+        });
+        
+        console.log('載入了 ' + data.length + ' 個項目');
+        
+        // 載入完成後，立即應用當前的篩選條件
+        setTimeout(function() {
+            applyFilters();
+        }, 100);
+        
+        delete window[callbackName];
+    };
+    
+    const script = document.createElement('script');
+    script.src = GOOGLE_APPS_SCRIPT_URL + '?callback=' + callbackName;
+    script.onerror = function() {
+        console.error('載入項目失敗');
+        const taskList = document.getElementById('taskList');
+        if (taskList) {
+            taskList.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #f44336; padding: 20px;">載入失敗，請重新整理頁面</td></tr>';
         }
+        delete window[callbackName];
+    };
+    
+    document.head.appendChild(script);
+}
 
-        .loading {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 40px;
+// 打開編輯模態框 - 使用數組索引
+function openEditModal(arrayIndex) {
+    console.log('🔧 打開編輯模態框，數組索引:', arrayIndex);
+    console.log('📋 所有任務:', allTasks);
+    
+    // 使用數組索引找到任務
+    const task = allTasks[arrayIndex];
+    if (!task) {
+        console.error('❌ 找不到要編輯的項目，索引:', arrayIndex);
+        showMessage('找不到要編輯的項目', 'error');
+        return;
+    }
+    
+    console.log('✅ 找到要編輯的項目:', task);
+    
+    // 保存當前編輯的任務信息
+    currentEditingTask = task;
+    currentEditingRowIndex = task.rowIndex; // 使用真實的行號
+    
+    console.log('💾 設置編輯變量 - rowIndex:', currentEditingRowIndex, 'task:', currentEditingTask);
+    
+    // 填充表單
+    document.getElementById('editName').value = task.name || '';
+    document.getElementById('editGroup').value = task.group || '';
+    document.getElementById('editQuantity').value = task.quantity || '';
+    document.getElementById('editStatus').value = task.status || '';
+    
+    // 顯示模態框
+    document.getElementById('editModal').style.display = 'block';
+    
+    console.log('✅ 編輯模態框已打開');
+}
+
+// 關閉編輯模態框
+function closeEditModal() {
+    document.getElementById('editModal').style.display = 'none';
+    currentEditingRowIndex = null;
+    currentEditingTask = null;
+    document.getElementById('editForm').reset();
+    console.log('✅ 編輯模態框已關閉');
+}
+
+// 處理編輯表單提交
+function handleEditSubmit(event) {
+    console.log('📝 處理編輯提交');
+    console.log('🔍 當前編輯行號:', currentEditingRowIndex);
+    console.log('🔍 當前編輯任務:', currentEditingTask);
+    
+    if (!currentEditingRowIndex || !currentEditingTask) {
+        console.error('❌ 編輯會話數據缺失');
+        showMessage('編輯會話已失效，請重新操作', 'error');
+        return;
+    }
+    
+    const formData = new FormData(event.target);
+    const taskData = {
+        name: formData.get('name') || '',
+        group: formData.get('group') || '',
+        quantity: formData.get('quantity') || '',
+        status: formData.get('status') || ''
+    };
+    
+    console.log('📝 編輯數據:', taskData);
+    
+    // 驗證必填欄位
+    if (!taskData.name.trim()) {
+        showMessage('請輸入項目名稱', 'error');
+        return;
+    }
+    
+    if (!taskData.group.trim()) {
+        showMessage('請選擇家庭分組', 'error');
+        return;
+    }
+    
+    console.log('✅ 開始編輯項目，行號:', currentEditingRowIndex);
+    editTask(currentEditingRowIndex, taskData);
+}
+
+// 編輯項目
+function editTask(rowIndex, taskData) {
+    console.log('🔧 編輯項目 API 調用，行號:', rowIndex, '數據:', taskData);
+    
+    const callbackName = 'edit_callback_' + Date.now();
+    
+    // 建立請求參數
+    const params = new URLSearchParams({
+        action: 'edit',
+        rowIndex: rowIndex,
+        name: taskData.name,
+        group: taskData.group,
+        quantity: taskData.quantity,
+        status: taskData.status,
+        callback: callbackName
+    });
+    
+    const url = GOOGLE_APPS_SCRIPT_URL + '?' + params.toString();
+    console.log('🌐 編輯項目 URL:', url);
+    
+    // 定義回調函數
+    window[callbackName] = function(response) {
+        console.log('📥 編輯項目回應:', response);
+        
+        if (response && response.success) {
+            showMessage('項目編輯成功！', 'success');
+            closeEditModal();
+            loadTasks(); // 重新載入項目列表
+        } else {
+            const errorMsg = response && response.error ? response.error : '編輯失敗';
+            console.error('❌ 編輯失敗:', errorMsg);
+            showMessage('編輯失敗: ' + errorMsg, 'error');
         }
-
-        .loading::after {
-            content: "載入中...";
-            font-size: 1.2em;
-            color: #8b7355;
+        
+        // 清理
+        delete window[callbackName];
+        if (script && script.parentNode) {
+            script.parentNode.removeChild(script);
         }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>🔥 烤肉準備項目工作區</h1>
-            <p>輕鬆管理烤肉用品清單，讓聚會準備更有條理！</p>
-        </div>
+    };
+    
+    // 建立並執行 JSONP 請求
+    const script = document.createElement('script');
+    script.src = url;
+    script.onerror = function() {
+        console.error('❌ JSONP 請求失敗');
+        showMessage('網路請求失敗，請檢查連線', 'error');
+        delete window[callbackName];
+        if (script.parentNode) {
+            script.parentNode.removeChild(script);
+        }
+    };
+    
+    document.head.appendChild(script);
+}
 
-        <div class="main-content">
-            <!-- 新增項目表單 -->
-            <div class="form-section">
-                <h2>📝 新增烤肉項目</h2>
-                <form id="taskForm">
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label for="itemName">🍖 項目名稱</label>
-                            <input type="text" id="itemName" name="itemName" required 
-                                   placeholder="例如：牛肉片、烤肉醬">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="familyGroup">👨‍👩‍👧‍👦 家庭分組</label>
-                            <select id="familyGroup" name="familyGroup" required>
-                                <!-- 家庭分組選項將由 JavaScript 填充 -->
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="quantity">🔢 數量</label>
-                            <input type="text" id="quantity" name="quantity" 
-                                   placeholder="例如：2包、500g">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="taskStatus">📊 狀態</label>
-                            <select id="taskStatus" name="status">
-                                <!-- 狀態選項將由 JavaScript 填充 -->
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <button type="submit" class="btn">✅ 新增項目</button>
-                </form>
-            </div>
+// 刪除項目 - 使用數組索引
+function deleteTask(arrayIndex) {
+    console.log('🗑️ 刪除項目，數組索引:', arrayIndex);
+    
+    // 使用數組索引找到任務
+    const task = allTasks[arrayIndex];
+    if (!task) {
+        console.error('❌ 找不到要刪除的項目');
+        showMessage('找不到要刪除的項目', 'error');
+        return;
+    }
+    
+    // 確認對話框
+    if (!confirm('確定要刪除「' + task.name + '」嗎？\n\n此操作無法復原。')) {
+        return;
+    }
+    
+    const callbackName = 'delete_callback_' + Date.now();
+    
+    // 建立請求參數 - 使用真實的行號
+    const params = new URLSearchParams({
+        action: 'delete',
+        rowIndex: task.rowIndex,
+        callback: callbackName
+    });
+    
+    const url = GOOGLE_APPS_SCRIPT_URL + '?' + params.toString();
+    console.log('🌐 刪除項目 URL:', url);
+    
+    // 定義回調函數
+    window[callbackName] = function(response) {
+        console.log('📥 刪除項目回應:', response);
+        
+        if (response && response.success) {
+            showMessage('項目刪除成功！', 'success');
+            loadTasks(); // 重新載入項目列表
+        } else {
+            const errorMsg = response && response.error ? response.error : '刪除失敗';
+            showMessage('刪除失敗: ' + errorMsg, 'error');
+        }
+        
+        // 清理
+        delete window[callbackName];
+        if (script && script.parentNode) {
+            script.parentNode.removeChild(script);
+        }
+    };
+    
+    // 建立並執行 JSONP 請求
+    const script = document.createElement('script');
+    script.src = url;
+    script.onerror = function() {
+        console.error('❌ JSONP 請求失敗');
+        showMessage('網路請求失敗，請檢查連線', 'error');
+        delete window[callbackName];
+        if (script.parentNode) {
+            script.parentNode.removeChild(script);
+        }
+    };
+    
+    document.head.appendChild(script);
+}
 
-            <!-- 項目列表 -->
-            <div class="tasks-section">
-                <div class="tasks-header">
-                    <h2>📋 烤肉準備清單</h2>
-                    <div class="filter-group">
-                        <label for="filterFamily">篩選家庭：</label>
-                        <select id="filterFamily">
-                            <option value="">全部家庭</option>
-                            <option value="郭家">郭家</option>
-                            <option value="哥家">哥家</option>
-                            <option value="翁家">翁家</option>
-                        </select>
-                        
-                        <label for="filterStatus">篩選狀態：</label>
-                        <select id="filterStatus">
-                            <option value="">全部狀態</option>
-                            <option value="待處理">待處理</option>
-                            <option value="進行中">進行中</option>
-                            <option value="已完成">已完成</option>
-                        </select>
-                    </div>
-                </div>
-                
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>🍖 項目名稱</th>
-                                <th>👨‍👩‍👧‍👦 家庭分組</th>
-                                <th>🔢 數量</th>
-                                <th>📊 狀態</th>
-                                <th>⚙️ 操作</th>
-                            </tr>
-                        </thead>
-                        <tbody id="taskList">
-                            <!-- 項目列表將由 JavaScript 填充 -->
-                            <tr><td colspan="4" class="text-center">載入中...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
+// 切換狀態 - 使用數組索引
+function toggleStatus(arrayIndex, currentStatus) {
+    const task = allTasks[arrayIndex];
+    if (!task) {
+        console.error('❌ 找不到要更新狀態的項目');
+        showMessage('找不到要更新的項目', 'error');
+        return;
+    }
+    
+    // 狀態切換循環：待處理 → 進行中 → 已完成 → 待處理
+    let newStatus;
+    switch (currentStatus) {
+        case '待處理':
+            newStatus = '進行中';
+            break;
+        case '進行中':
+            newStatus = '已完成';
+            break;
+        case '已完成':
+            newStatus = '待處理';
+            break;
+        default:
+            newStatus = '進行中';
+    }
+    
+    updateStatus(task.rowIndex, newStatus);
+}
 
-    <!-- 編輯項目模態框 -->
-    <div id="editModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>✏️ 編輯項目</h3>
-                <span class="close" onclick="closeEditModal()">&times;</span>
-            </div>
-            <form id="editForm">
-                <div class="form-group">
-                    <label for="editName">🍖 項目名稱</label>
-                    <input type="text" id="editName" name="name" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="editGroup">👨‍👩‍👧‍👦 家庭分組</label>
-                    <select id="editGroup" name="group" required>
-                        <option value="">請選擇家庭分組</option>
-                        <option value="郭家">郭家</option>
-                        <option value="哥家">哥家</option>
-                        <option value="翁家">翁家</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="editQuantity">🔢 數量</label>
-                    <input type="text" id="editQuantity" name="quantity">
-                </div>
-                
-                <div class="form-group">
-                    <label for="editStatus">📊 狀態</label>
-                    <select id="editStatus" name="status">
-                        <option value="待處理">待處理</option>
-                        <option value="進行中">進行中</option>
-                        <option value="已完成">已完成</option>
-                    </select>
-                </div>
-                
-                <div style="display: flex; gap: 15px; margin-top: 25px;">
-                    <button type="submit" class="btn" style="flex: 1;">✅ 保存變更</button>
-                    <button type="button" class="btn" style="flex: 1; background: #9a8e82;" onclick="closeEditModal()">❌ 取消</button>
-                </div>
-            </form>
-        </div>
-    </div>
+// 更新狀態
+function updateStatus(rowIndex, newStatus) {
+    const callbackName = 'status_callback_' + Date.now();
+    
+    // 建立請求參數
+    const params = new URLSearchParams({
+        action: 'updateStatus',
+        rowIndex: rowIndex,
+        status: newStatus,
+        callback: callbackName
+    });
+    
+    const url = GOOGLE_APPS_SCRIPT_URL + '?' + params.toString();
+    console.log('🌐 更新狀態 URL:', url);
+    
+    // 定義回調函數
+    window[callbackName] = function(response) {
+        console.log('📥 更新狀態回應:', response);
+        
+        if (response && response.success) {
+            showMessage('狀態更新為：' + response.newStatus, 'success');
+            loadTasks(); // 重新載入項目列表
+        } else {
+            const errorMsg = response && response.error ? response.error : '狀態更新失敗';
+            showMessage('狀態更新失敗: ' + errorMsg, 'error');
+        }
+        
+        // 清理
+        delete window[callbackName];
+        if (script && script.parentNode) {
+            script.parentNode.removeChild(script);
+        }
+    };
+    
+    // 建立並執行 JSONP 請求
+    const script = document.createElement('script');
+    script.src = url;
+    script.onerror = function() {
+        console.error('❌ JSONP 請求失敗');
+        showMessage('網路請求失敗，請檢查連線', 'error');
+        delete window[callbackName];
+        if (script.parentNode) {
+            script.parentNode.removeChild(script);
+        }
+    };
+    
+    document.head.appendChild(script);
+}
 
-    <script src="script.js"></script>
-</body>
-</html>
+// 應用篩選
+function applyFilters() {
+    const familyFilter = document.getElementById('filterFamily').value;
+    const statusFilter = document.getElementById('filterStatus').value;
+    const rows = document.querySelectorAll('#taskList tr');
+    
+    console.log('開始篩選 - 家庭:', familyFilter, '狀態:', statusFilter);
+    
+    let visibleCount = 0;
+    
+    rows.forEach(function(row) {
+        const cells = row.querySelectorAll('td');
+        
+        // 跳過標題行或空行
+        if (cells.length < 5) {
+            return;
+        }
+        
+        // 獲取文本內容（第2列是家庭分組，第4列是狀態）
+        const familyText = cells[1].textContent.trim();
+        const statusElement = cells[3].querySelector('.status-badge');
+        const statusText = statusElement ? statusElement.textContent.trim() : cells[3].textContent.trim();
+        
+        let showRow = true;
+        
+        // 家庭分組篩選
+        if (familyFilter && familyFilter !== '' && familyText !== familyFilter) {
+            showRow = false;
+        }
+        
+        // 狀態篩選
+        if (statusFilter && statusFilter !== '' && statusText !== statusFilter) {
+            showRow = false;
+        }
+        
+        // 顯示或隱藏行
+        row.style.display = showRow ? '' : 'none';
+        
+        if (showRow) {
+            visibleCount++;
+        }
+    });
+    
+    console.log('篩選完成 - 顯示項目數:', visibleCount);
+    
+    // 如果沒有符合的項目，顯示提示
+    if (visibleCount === 0 && rows.length > 0) {
+        const taskList = document.getElementById('taskList');
+        const noResultRow = document.createElement('tr');
+        noResultRow.id = 'no-result-row';
+        noResultRow.innerHTML = '<td colspan="5" style="text-align: center; color: #666; font-style: italic; padding: 20px;">沒有符合篩選條件的項目</td>';
+        
+        // 移除之前的提示行
+        const existingNoResult = document.getElementById('no-result-row');
+        if (existingNoResult) {
+            existingNoResult.remove();
+        }
+        
+        taskList.appendChild(noResultRow);
+    } else {
+        // 移除無結果提示
+        const existingNoResult = document.getElementById('no-result-row');
+        if (existingNoResult) {
+            existingNoResult.remove();
+        }
+    }
+}
+
+// 取得狀態對應的 CSS 類別
+function getStatusClass(status) {
+    switch (status) {
+        case '待處理': return 'pending';
+        case '進行中': return 'in-progress';
+        case '已完成': return 'completed';
+        default: return 'pending';
+    }
+}
+
+// 顯示訊息
+function showMessage(message, type) {
+    type = type || 'info';
+    
+    // 移除現有訊息
+    const existingMessage = document.querySelector('.message-toast');
+    if (existingMessage) {
+        existingMessage.remove();
+    }
+    
+    // 建立新訊息
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'message-toast message-' + type;
+    messageDiv.textContent = message;
+    
+    // 樣式
+    messageDiv.style.cssText = 
+        'position: fixed; top: 20px; right: 20px; padding: 12px 20px; ' +
+        'border-radius: 4px; color: white; font-weight: bold; z-index: 1000; ' +
+        'transition: opacity 0.3s ease;';
+    
+    // 根據類型設置背景色
+    switch (type) {
+        case 'success':
+            messageDiv.style.backgroundColor = '#4CAF50';
+            break;
+        case 'error':
+            messageDiv.style.backgroundColor = '#f44336';
+            break;
+        default:
+            messageDiv.style.backgroundColor = '#2196F3';
+    }
+    
+    // 加到頁面
+    document.body.appendChild(messageDiv);
+    
+    // 3秒後移除
+    setTimeout(function() {
+        messageDiv.style.opacity = '0';
+        setTimeout(function() {
+            if (messageDiv.parentNode) {
+                messageDiv.parentNode.removeChild(messageDiv);
+            }
+        }, 300);
+    }, 3000);
+}
+
+console.log('烤肉準備項目工作區已載入完成 - 調試修復版');
