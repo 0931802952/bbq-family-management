@@ -1,4 +1,4 @@
-// 烤肉準備項目工作區 - 完整 CRUD 功能版
+// 烤肉準備項目工作區 - 調試修復版
 const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxRK7Q2jL7bGDigcuL6XHthkH1PJPtEEaWarfl-DDTw9CBU7FI80Rl80mVJSLpmV7ac/exec';
 
 // 家庭分組和狀態選項
@@ -7,11 +7,12 @@ const STATUS_OPTIONS = ['待處理', '進行中', '已完成'];
 
 // 全局變量
 let currentEditingRowIndex = null;
+let currentEditingTask = null;
 let allTasks = [];
 
 // 當頁面載入完成時初始化
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🔥 烤肉準備項目工作區啟動 - 完整功能版');
+    console.log('🔥 烤肉準備項目工作區啟動 - 調試修復版');
     
     // 初始化表單選擇器
     initializeSelectors();
@@ -209,6 +210,8 @@ function loadTasks() {
     const callbackName = 'callback_' + Date.now();
     
     window[callbackName] = function(data) {
+        console.log('🔍 原始數據:', data);
+        
         const taskList = document.getElementById('taskList');
         if (!taskList) return;
         
@@ -222,21 +225,32 @@ function loadTasks() {
             return;
         }
         
-        // 儲存原始數據供篩選使用
-        allTasks = data;
+        // 儲存原始數據供篩選使用，同時生成行索引
+        allTasks = data.map(function(task, index) {
+            // 如果後端沒有提供 rowIndex，我們用數組索引+2（因為第1行是標題行）
+            const actualRowIndex = task.rowIndex || (index + 2);
+            return {
+                ...task,
+                rowIndex: actualRowIndex,
+                arrayIndex: index // 保存數組索引用於前端操作
+            };
+        });
         
-        data.forEach(function(task) {
+        console.log('💾 處理後的數據:', allTasks);
+        
+        allTasks.forEach(function(task, index) {
             if (!task) return;
             
             const row = document.createElement('tr');
+            // 使用數組索引而不是rowIndex來避免混亂
             row.innerHTML = 
                 '<td>' + (task.name || '') + '</td>' +
                 '<td>' + (task.group || '') + '</td>' +
                 '<td>' + (task.quantity || '1') + '</td>' +
-                '<td><span class="status-badge status-' + getStatusClass(task.status) + '" onclick="toggleStatus(' + task.rowIndex + ', \'' + (task.status || '待處理') + '\')">' + (task.status || '待處理') + '</span></td>' +
+                '<td><span class="status-badge status-' + getStatusClass(task.status) + '" onclick="toggleStatus(' + index + ', \'' + (task.status || '待處理') + '\')">' + (task.status || '待處理') + '</span></td>' +
                 '<td class="action-buttons">' +
-                    '<button class="action-btn edit-btn" onclick="openEditModal(' + task.rowIndex + ')">✏️ 編輯</button>' +
-                    '<button class="action-btn delete-btn" onclick="deleteTask(' + task.rowIndex + ')">🗑️ 刪除</button>' +
+                    '<button class="action-btn edit-btn" onclick="openEditModal(' + index + ')">✏️ 編輯</button>' +
+                    '<button class="action-btn delete-btn" onclick="deleteTask(' + index + ')">🗑️ 刪除</button>' +
                 '</td>';
             taskList.appendChild(row);
         });
@@ -265,16 +279,26 @@ function loadTasks() {
     document.head.appendChild(script);
 }
 
-// 打開編輯模態框
-function openEditModal(rowIndex) {
-    // 找到要編輯的任務
-    const task = allTasks.find(t => t.rowIndex === rowIndex);
+// 打開編輯模態框 - 使用數組索引
+function openEditModal(arrayIndex) {
+    console.log('🔧 打開編輯模態框，數組索引:', arrayIndex);
+    console.log('📋 所有任務:', allTasks);
+    
+    // 使用數組索引找到任務
+    const task = allTasks[arrayIndex];
     if (!task) {
+        console.error('❌ 找不到要編輯的項目，索引:', arrayIndex);
         showMessage('找不到要編輯的項目', 'error');
         return;
     }
     
-    currentEditingRowIndex = rowIndex;
+    console.log('✅ 找到要編輯的項目:', task);
+    
+    // 保存當前編輯的任務信息
+    currentEditingTask = task;
+    currentEditingRowIndex = task.rowIndex; // 使用真實的行號
+    
+    console.log('💾 設置編輯變量 - rowIndex:', currentEditingRowIndex, 'task:', currentEditingTask);
     
     // 填充表單
     document.getElementById('editName').value = task.name || '';
@@ -285,19 +309,26 @@ function openEditModal(rowIndex) {
     // 顯示模態框
     document.getElementById('editModal').style.display = 'block';
     
-    console.log('打開編輯模態框:', task);
+    console.log('✅ 編輯模態框已打開');
 }
 
 // 關閉編輯模態框
 function closeEditModal() {
     document.getElementById('editModal').style.display = 'none';
     currentEditingRowIndex = null;
+    currentEditingTask = null;
     document.getElementById('editForm').reset();
+    console.log('✅ 編輯模態框已關閉');
 }
 
 // 處理編輯表單提交
 function handleEditSubmit(event) {
-    if (!currentEditingRowIndex) {
+    console.log('📝 處理編輯提交');
+    console.log('🔍 當前編輯行號:', currentEditingRowIndex);
+    console.log('🔍 當前編輯任務:', currentEditingTask);
+    
+    if (!currentEditingRowIndex || !currentEditingTask) {
+        console.error('❌ 編輯會話數據缺失');
         showMessage('編輯會話已失效，請重新操作', 'error');
         return;
     }
@@ -310,6 +341,8 @@ function handleEditSubmit(event) {
         status: formData.get('status') || ''
     };
     
+    console.log('📝 編輯數據:', taskData);
+    
     // 驗證必填欄位
     if (!taskData.name.trim()) {
         showMessage('請輸入項目名稱', 'error');
@@ -321,12 +354,14 @@ function handleEditSubmit(event) {
         return;
     }
     
-    console.log('準備編輯項目:', taskData, '行號:', currentEditingRowIndex);
+    console.log('✅ 開始編輯項目，行號:', currentEditingRowIndex);
     editTask(currentEditingRowIndex, taskData);
 }
 
 // 編輯項目
 function editTask(rowIndex, taskData) {
+    console.log('🔧 編輯項目 API 調用，行號:', rowIndex, '數據:', taskData);
+    
     const callbackName = 'edit_callback_' + Date.now();
     
     // 建立請求參數
@@ -341,11 +376,11 @@ function editTask(rowIndex, taskData) {
     });
     
     const url = GOOGLE_APPS_SCRIPT_URL + '?' + params.toString();
-    console.log('編輯項目 URL:', url);
+    console.log('🌐 編輯項目 URL:', url);
     
     // 定義回調函數
     window[callbackName] = function(response) {
-        console.log('編輯項目回應:', response);
+        console.log('📥 編輯項目回應:', response);
         
         if (response && response.success) {
             showMessage('項目編輯成功！', 'success');
@@ -353,6 +388,7 @@ function editTask(rowIndex, taskData) {
             loadTasks(); // 重新載入項目列表
         } else {
             const errorMsg = response && response.error ? response.error : '編輯失敗';
+            console.error('❌ 編輯失敗:', errorMsg);
             showMessage('編輯失敗: ' + errorMsg, 'error');
         }
         
@@ -367,7 +403,7 @@ function editTask(rowIndex, taskData) {
     const script = document.createElement('script');
     script.src = url;
     script.onerror = function() {
-        console.error('JSONP 請求失敗');
+        console.error('❌ JSONP 請求失敗');
         showMessage('網路請求失敗，請檢查連線', 'error');
         delete window[callbackName];
         if (script.parentNode) {
@@ -378,11 +414,14 @@ function editTask(rowIndex, taskData) {
     document.head.appendChild(script);
 }
 
-// 刪除項目
-function deleteTask(rowIndex) {
-    // 找到要刪除的任務
-    const task = allTasks.find(t => t.rowIndex === rowIndex);
+// 刪除項目 - 使用數組索引
+function deleteTask(arrayIndex) {
+    console.log('🗑️ 刪除項目，數組索引:', arrayIndex);
+    
+    // 使用數組索引找到任務
+    const task = allTasks[arrayIndex];
     if (!task) {
+        console.error('❌ 找不到要刪除的項目');
         showMessage('找不到要刪除的項目', 'error');
         return;
     }
@@ -394,19 +433,19 @@ function deleteTask(rowIndex) {
     
     const callbackName = 'delete_callback_' + Date.now();
     
-    // 建立請求參數
+    // 建立請求參數 - 使用真實的行號
     const params = new URLSearchParams({
         action: 'delete',
-        rowIndex: rowIndex,
+        rowIndex: task.rowIndex,
         callback: callbackName
     });
     
     const url = GOOGLE_APPS_SCRIPT_URL + '?' + params.toString();
-    console.log('刪除項目 URL:', url);
+    console.log('🌐 刪除項目 URL:', url);
     
     // 定義回調函數
     window[callbackName] = function(response) {
-        console.log('刪除項目回應:', response);
+        console.log('📥 刪除項目回應:', response);
         
         if (response && response.success) {
             showMessage('項目刪除成功！', 'success');
@@ -427,7 +466,7 @@ function deleteTask(rowIndex) {
     const script = document.createElement('script');
     script.src = url;
     script.onerror = function() {
-        console.error('JSONP 請求失敗');
+        console.error('❌ JSONP 請求失敗');
         showMessage('網路請求失敗，請檢查連線', 'error');
         delete window[callbackName];
         if (script.parentNode) {
@@ -438,8 +477,15 @@ function deleteTask(rowIndex) {
     document.head.appendChild(script);
 }
 
-// 切換狀態
-function toggleStatus(rowIndex, currentStatus) {
+// 切換狀態 - 使用數組索引
+function toggleStatus(arrayIndex, currentStatus) {
+    const task = allTasks[arrayIndex];
+    if (!task) {
+        console.error('❌ 找不到要更新狀態的項目');
+        showMessage('找不到要更新的項目', 'error');
+        return;
+    }
+    
     // 狀態切換循環：待處理 → 進行中 → 已完成 → 待處理
     let newStatus;
     switch (currentStatus) {
@@ -456,7 +502,7 @@ function toggleStatus(rowIndex, currentStatus) {
             newStatus = '進行中';
     }
     
-    updateStatus(rowIndex, newStatus);
+    updateStatus(task.rowIndex, newStatus);
 }
 
 // 更新狀態
@@ -472,11 +518,11 @@ function updateStatus(rowIndex, newStatus) {
     });
     
     const url = GOOGLE_APPS_SCRIPT_URL + '?' + params.toString();
-    console.log('更新狀態 URL:', url);
+    console.log('🌐 更新狀態 URL:', url);
     
     // 定義回調函數
     window[callbackName] = function(response) {
-        console.log('更新狀態回應:', response);
+        console.log('📥 更新狀態回應:', response);
         
         if (response && response.success) {
             showMessage('狀態更新為：' + response.newStatus, 'success');
@@ -497,7 +543,7 @@ function updateStatus(rowIndex, newStatus) {
     const script = document.createElement('script');
     script.src = url;
     script.onerror = function() {
-        console.error('JSONP 請求失敗');
+        console.error('❌ JSONP 請求失敗');
         showMessage('網路請求失敗，請檢查連線', 'error');
         delete window[callbackName];
         if (script.parentNode) {
@@ -531,20 +577,16 @@ function applyFilters() {
         const statusElement = cells[3].querySelector('.status-badge');
         const statusText = statusElement ? statusElement.textContent.trim() : cells[3].textContent.trim();
         
-        console.log('檢查項目:', familyText, statusText);
-        
         let showRow = true;
         
         // 家庭分組篩選
         if (familyFilter && familyFilter !== '' && familyText !== familyFilter) {
             showRow = false;
-            console.log('家庭不匹配:', familyText, '!=', familyFilter);
         }
         
         // 狀態篩選
         if (statusFilter && statusFilter !== '' && statusText !== statusFilter) {
             showRow = false;
-            console.log('狀態不匹配:', statusText, '!=', statusFilter);
         }
         
         // 顯示或隱藏行
@@ -637,4 +679,4 @@ function showMessage(message, type) {
     }, 3000);
 }
 
-console.log('烤肉準備項目工作區已載入完成 - 完整 CRUD 功能版');
+console.log('烤肉準備項目工作區已載入完成 - 調試修復版');
