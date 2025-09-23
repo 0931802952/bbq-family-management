@@ -13,7 +13,7 @@
 
         body {
             font-family: 'Arial', 'Microsoft JhengHei', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #d4c8c1 0%, #a89d96 100%);
             min-height: 100vh;
             padding: 20px;
         }
@@ -21,14 +21,14 @@
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            background: white;
+            background: #f5f3f1;
             border-radius: 15px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.1);
             overflow: hidden;
         }
 
         .header {
-            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            background: linear-gradient(135deg, #c4a88a, #a89480);
             color: white;
             padding: 30px;
             text-align: center;
@@ -50,15 +50,15 @@
         }
 
         .form-section {
-            background: #f8f9fa;
+            background: #f0ede9;
             padding: 25px;
             border-radius: 10px;
             margin-bottom: 30px;
-            border-left: 5px solid #ff6b6b;
+            border-left: 5px solid #c4a88a;
         }
 
         .form-section h2 {
-            color: #333;
+            color: #6b5d56;
             margin-bottom: 20px;
             font-size: 1.5em;
         }
@@ -78,27 +78,28 @@
         .form-group label {
             font-weight: bold;
             margin-bottom: 8px;
-            color: #555;
+            color: #6b5d56;
         }
 
         .form-group input,
         .form-group select {
             padding: 12px;
-            border: 2px solid #ddd;
+            border: 2px solid #d4c8c1;
             border-radius: 8px;
             font-size: 16px;
             transition: border-color 0.3s ease;
+            background-color: #faf9f8;
         }
 
         .form-group input:focus,
         .form-group select:focus {
             outline: none;
-            border-color: #ff6b6b;
-            box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.1);
+            border-color: #c4a88a;
+            box-shadow: 0 0 0 3px rgba(196, 168, 138, 0.1);
         }
 
         .btn {
-            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            background: linear-gradient(135deg, #c4a88a, #a89480);
             color: white;
             border: none;
             padding: 15px 30px;
@@ -111,18 +112,18 @@
 
         .btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+            box-shadow: 0 5px 15px rgba(196, 168, 138, 0.4);
         }
 
         .tasks-section {
-            background: white;
+            background: #f5f3f1;
             border-radius: 10px;
             overflow: hidden;
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         }
 
         .tasks-header {
-            background: #667eea;
+            background: #b5a699;
             color: white;
             padding: 20px;
             display: flex;
@@ -153,8 +154,8 @@
             padding: 8px 12px;
             border: none;
             border-radius: 5px;
-            background: white;
-            color: #333;
+            background: #f5f3f1;
+            color: #6b5d56;
             min-width: 120px;
         }
 
@@ -170,20 +171,20 @@
         th, td {
             padding: 15px;
             text-align: left;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid #e8e4e0;
         }
 
         th {
-            background: #f8f9fa;
+            background: #f0ede9;
             font-weight: bold;
-            color: #555;
+            color: #6b5d56;
             text-transform: uppercase;
             font-size: 0.9em;
             letter-spacing: 1px;
         }
 
         tr:hover {
-            background-color: #f8f9fa;
+            background-color: #f0ede9;
         }
 
         .status-badge {
@@ -195,18 +196,18 @@
         }
 
         .status-pending {
-            background: #fff3cd;
-            color: #856404;
+            background: #e8ddd6;
+            color: #8b7355;
         }
 
         .status-in-progress {
-            background: #cce5ff;
-            color: #004085;
+            background: #d4c8c1;
+            color: #6b5d56;
         }
 
         .status-completed {
-            background: #d4edda;
-            color: #155724;
+            background: #c4b5aa;
+            color: #544842;
         }
 
         .status-badge:hover {
@@ -235,28 +236,28 @@
         }
 
         .edit-btn {
-            background: #17a2b8;
+            background: #9a8e82;
             color: white;
         }
 
         .edit-btn:hover {
-            background: #138496;
+            background: #867b6f;
             transform: translateY(-1px);
         }
 
         .delete-btn {
-            background: #dc3545;
+            background: #a89480;
             color: white;
         }
 
         .delete-btn:hover {
-            background: #c82333;
+            background: #96826e;
             transform: translateY(-1px);
         }
 
         .text-center {
             text-align: center;
-            color: #666;
+            color: #8b7355;
             font-style: italic;
             padding: 40px;
         }
@@ -274,7 +275,7 @@
         }
 
         .modal-content {
-            background-color: white;
+            background-color: #f5f3f1;
             margin: 10% auto;
             padding: 30px;
             border-radius: 10px;
@@ -289,16 +290,16 @@
             align-items: center;
             margin-bottom: 20px;
             padding-bottom: 15px;
-            border-bottom: 2px solid #eee;
+            border-bottom: 2px solid #e8e4e0;
         }
 
         .modal-header h3 {
-            color: #333;
+            color: #6b5d56;
             margin: 0;
         }
 
         .close {
-            color: #aaa;
+            color: #a89d96;
             font-size: 28px;
             font-weight: bold;
             cursor: pointer;
@@ -306,7 +307,7 @@
         }
 
         .close:hover {
-            color: #333;
+            color: #6b5d56;
         }
 
         @media (max-width: 768px) {
@@ -338,7 +339,7 @@
         .loading::after {
             content: "載入中...";
             font-size: 1.2em;
-            color: #666;
+            color: #8b7355;
         }
     </style>
 </head>
@@ -469,7 +470,7 @@
                 
                 <div style="display: flex; gap: 15px; margin-top: 25px;">
                     <button type="submit" class="btn" style="flex: 1;">✅ 保存變更</button>
-                    <button type="button" class="btn" style="flex: 1; background: #6c757d;" onclick="closeEditModal()">❌ 取消</button>
+                    <button type="button" class="btn" style="flex: 1; background: #9a8e82;" onclick="closeEditModal()">❌ 取消</button>
                 </div>
             </form>
         </div>
